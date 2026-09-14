@@ -28,6 +28,7 @@ MODALITY_FIELDS = {
     "T2": "t2_path",
     "FLAIR": "flair_path",
 }
+NIFTI_SUFFIXES = (".nii", ".nii.gz")
 
 
 def _natural_sort_key(value):
@@ -48,13 +49,15 @@ def list_subjects():
         subject = {"id": sid}
         has_modality = False
         for modality, field in MODALITY_FIELDS.items():
-            filename = f"{sid}_{modality}.nii.gz"
-            file_path = os.path.join(entry.path, filename)
-            if os.path.isfile(file_path) and not os.path.islink(file_path):
-                subject[field] = f"data/{quote(sid, safe='')}/{quote(filename, safe='')}"
-                has_modality = True
-            else:
-                subject[field] = None
+            subject[field] = None
+            # Prefer an uncompressed volume when both forms are present.
+            for suffix in NIFTI_SUFFIXES:
+                filename = f"{sid}_{modality}{suffix}"
+                file_path = os.path.join(entry.path, filename)
+                if os.path.isfile(file_path) and not os.path.islink(file_path):
+                    subject[field] = f"data/{quote(sid, safe='')}/{quote(filename, safe='')}"
+                    has_modality = True
+                    break
 
         if has_modality:
             subjects.append(subject)

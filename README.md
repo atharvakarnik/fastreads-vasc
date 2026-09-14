@@ -18,16 +18,16 @@ Place each participant in an immediate subdirectory of `data/`. The directory na
 ```text
 data/
 ├── <ID_1>/
-│   ├── <ID_1>_T1.nii.gz
-│   ├── <ID_1>_T2.nii.gz
-│   └── <ID_1>_FLAIR.nii.gz
+│   ├── <ID_1>_T1.nii[.gz]
+│   ├── <ID_1>_T2.nii[.gz]
+│   └── <ID_1>_FLAIR.nii[.gz]
 └── <ID_2>/
-    ├── <ID_2>_T1.nii.gz
-    ├── <ID_2>_T2.nii.gz
-    └── <ID_2>_FLAIR.nii.gz
+    ├── <ID_2>_T1.nii[.gz]
+    ├── <ID_2>_T2.nii[.gz]
+    └── <ID_2>_FLAIR.nii[.gz]
 ```
 
-Only these explicit Wave 1 filenames are recognized. A participant needs at least one of the three files. If a modality is missing, the participant remains available and only that modality control is disabled. Participant IDs are naturally sorted.
+Only these explicit Wave 1 filenames are recognized, using either `.nii` or `.nii.gz`. If both forms are present for one modality, the uncompressed `.nii` file is used. A participant needs at least one of the three files. If a modality is missing, the participant remains available and only that modality control is disabled. Participant IDs are naturally sorted.
 
 Do not add medical images to Git. The entire `data/` directory is intentionally ignored.
 

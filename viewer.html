@@ -32,6 +32,15 @@
     .label { font-size:12px; opacity:0.8; }
     .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
     .chip { font-size:12px; padding:4px 8px; border-radius:999px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.12); }
+    .viewPicker { box-sizing:border-box; flex:0 0 auto; display:grid; grid-template-columns:auto minmax(0, 1fr); column-gap:4px; align-items:start; width:92px; height:26px; padding:0 8px; overflow:hidden; position:relative; z-index:2; transition:height 180ms ease, margin-bottom 180ms ease, width 180ms ease, padding 180ms ease, border-radius 140ms ease, background-color 140ms ease, border-color 140ms ease; }
+    .viewPicker:hover, .viewPicker:has(input:focus-visible) { width:116px; height:74px; margin-bottom:-48px; padding:0 6px; border-radius:12px; background:rgba(255,255,255,0.15); border-color:rgba(255,255,255,0.28); }
+    .viewPickerTitle { line-height:24px; white-space:nowrap; }
+    .viewPickerOptions { display:flex; flex-direction:column; min-width:0; }
+    .viewPickerOption { display:flex; align-items:center; height:0; overflow:hidden; opacity:0; pointer-events:none; transform:translateY(-3px); transition:height 180ms ease, opacity 140ms ease, transform 180ms ease; white-space:nowrap; }
+    .viewPickerOption.isSelected { height:24px; opacity:1; pointer-events:auto; transform:none; }
+    .viewPicker:hover .viewPickerOption, .viewPicker:has(input:focus-visible) .viewPickerOption { height:24px; opacity:1; pointer-events:auto; transform:none; transition-delay:0ms, 100ms, 100ms; }
+    .viewPickerOption input { box-sizing:border-box; width:0; min-width:0; height:13px; margin:0; padding:0; opacity:0; transition:width 180ms ease, margin 180ms ease, opacity 140ms ease; }
+    .viewPicker:hover .viewPickerOption input, .viewPicker:has(input:focus-visible) .viewPickerOption input { width:13px; margin-right:6px; opacity:1; transition-delay:100ms, 100ms, 100ms; }
     .status { font-size:12px; opacity:0.85; line-height:1.35; }
     .hr { height:1px; background:rgba(255,255,255,0.08); margin:12px 0; }
     .rangeGrid { display:grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; gap:8px; margin-top:6px; align-items:end; }
@@ -66,22 +75,6 @@
 
 <body>
   <div id="left">
-    <div class="label">View</div>
-    <div class="row" style="margin-top:6px;">
-      <label style="display:flex; align-items:center; gap:6px; font-size:12px; opacity:0.95;">
-        <input id="viewT1" type="radio" name="viewMode" value="T1" checked disabled>
-        T1
-      </label>
-      <label style="display:flex; align-items:center; gap:6px; font-size:12px; opacity:0.95;">
-        <input id="viewT2" type="radio" name="viewMode" value="T2" disabled>
-        T2
-      </label>
-      <label style="display:flex; align-items:center; gap:6px; font-size:12px; opacity:0.95;">
-        <input id="viewFlair" type="radio" name="viewMode" value="FLAIR" disabled>
-        FLAIR
-      </label>
-    </div>
-
     <div class="label">Participant</div>
     <div style="display:flex; align-items:center; gap:10px; margin-top:6px;">
       <div class="chip">ID: <span id="sid" class="mono">------</span></div>
@@ -218,7 +211,23 @@
 
   <div id="viewerWrap">
     <div id="topBar">
-      <div class="chip">View: <span class="mono" id="viewModeChip">T1</span></div>
+      <div class="chip viewPicker" aria-label="Image view selector">
+        <span class="viewPickerTitle">View:</span>
+        <div class="viewPickerOptions">
+          <label class="viewPickerOption isSelected">
+            <input id="viewT1" type="radio" name="viewMode" value="T1" checked disabled>
+            <span class="mono">T1</span>
+          </label>
+          <label class="viewPickerOption">
+            <input id="viewT2" type="radio" name="viewMode" value="T2" disabled>
+            <span class="mono">T2</span>
+          </label>
+          <label class="viewPickerOption">
+            <input id="viewFlair" type="radio" name="viewMode" value="FLAIR" disabled>
+            <span class="mono">FLAIR</span>
+          </label>
+        </div>
+      </div>
       <div class="chip">Source: <span class="mono" id="sourcePathChip">-</span></div>
       <div class="toolGroup" aria-label="Slice tools">
         <button id="sliceToolNavigate" class="toolBtn isActive" type="button" title="Default slice navigation tool">
@@ -288,7 +297,6 @@
     const scountEl = document.getElementById("scount");
     const statusEl = document.getElementById("status");
     const topStatusEl = document.getElementById("topStatus");
-    const viewModeChip = document.getElementById("viewModeChip");
     const sourcePathChip = document.getElementById("sourcePathChip");
     const sliceToolNavigateBtn = document.getElementById("sliceToolNavigate");
     const sliceToolZoomBtn = document.getElementById("sliceToolZoom");
@@ -1248,10 +1256,10 @@
     });
 
     function setViewUiState(subject=subjects[idx]) {
-      viewModeChip.textContent = currentView;
       for (const view of VIEW_ORDER) {
         viewInputs[view].disabled = !pathForView(subject, view);
         viewInputs[view].checked = currentView === view;
+        viewInputs[view].closest(".viewPickerOption").classList.toggle("isSelected", currentView === view);
       }
     }
 
