@@ -1,0 +1,20 @@
+# Local medical/imaging data - never commit
+/data/
+
+# Physician review output - may contain participant identifiers/notes
+/notes.csv
+/notes.csv.tmp
+
+# Private/local notes
+/ProNotes.md
+
+# OS/editor clutter
+.DS_Store
+Thumbs.db
+.vscode/
+__pycache__/
+*.py[cod]
+
+# Local secrets/config
+.env
+.env.*
