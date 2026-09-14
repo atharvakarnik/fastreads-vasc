@@ -245,5 +245,5 @@ class Handler(SimpleHTTPRequestHandler):
 if __name__ == "__main__":
     os.chdir(BASE_DIR)
     httpd = ThreadingHTTPServer(("127.0.0.1", PORT), Handler)
-    print(f"FastReads VASC serving on http://127.0.0.1:{PORT}/viewer.html")
+    print(f"VascReads serving on http://127.0.0.1:{PORT}/viewer.html")
     httpd.serve_forever()

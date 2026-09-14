@@ -14,7 +14,7 @@ STATUS=$?
 
 if [ "$STATUS" -ne 0 ]; then
   echo ""
-  echo "FastReads VASC did not start successfully."
+  echo "VascReads did not start successfully."
   read -r -p "Press Return to close this window..."
 fi
 

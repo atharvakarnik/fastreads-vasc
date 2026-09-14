@@ -1,6 +1,6 @@
-# FastReads VASC
+# VascReads
 
-FastReads VASC is a lightweight, local NIfTI viewer for reviewing structural MRI images in a web browser. Wave 1 supports one T1, T2, and FLAIR image per participant and keeps the source images, notes, and review data on the local computer.
+VascReads is a lightweight, local NIfTI viewer for reviewing structural MRI images in a web browser. Wave 1 supports one T1, T2, and FLAIR image per participant and keeps the source images, notes, and review data on the local computer.
 
 The viewer uses vanilla HTML/CSS/JavaScript, the vendored NiiVue build, and a Python standard-library HTTP server. It has no build step or runtime network dependency. It has not been clinically or diagnostically validated.
 
@@ -43,7 +43,7 @@ Then open [http://127.0.0.1:8000/viewer.html](http://127.0.0.1:8000/viewer.html)
 
 ### Windows
 
-Double-click `Start_Viewer.bat`. Keep the **FastReads VASC Server** window open while using the viewer. `Stop_Viewer.bat` explains how to stop it.
+Double-click `Start_Viewer.bat`. Keep the **VascReads Server** window open while using the viewer. `Stop_Viewer.bat` explains how to stop it.
 
 ### macOS and Linux
 
@@ -57,7 +57,7 @@ On macOS, `Start_Viewer.command` can also be opened directly. Keep its Terminal 
 
 ## Review and notes
 
-Notes and the existing Wave 1 review fields are participant-specific. Changes autosave in browser-local storage under FastReads VASC-specific keys. The **Save Notes → notes.csv** button explicitly writes the current local review collection to `notes.csv`, and saved reads can be skipped during Previous/Next navigation.
+Notes and the existing Wave 1 review fields are participant-specific. Changes autosave in browser-local storage under VascReads-specific keys. The **Save Notes → notes.csv** button explicitly writes the current local review collection to `notes.csv`, and saved reads can be skipped during Previous/Next navigation.
 
 `notes.csv` contains local physician review data and is intentionally ignored by Git, along with medical imaging data. Do not upload or commit either.
 

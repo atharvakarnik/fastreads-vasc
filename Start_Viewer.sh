@@ -96,22 +96,22 @@ cleanup() {
     local server_pid="$SERVER_PID"
     SERVER_PID=""
     echo ""
-    echo "Stopping FastReads VASC server..."
+    echo "Stopping VascReads server..."
     kill "$server_pid" 2>/dev/null || true
   fi
 }
 trap cleanup EXIT INT TERM
 
 if viewer_is_ready; then
-  echo "FastReads VASC server is already running at:"
+  echo "VascReads server is already running at:"
   echo "  $URL"
   echo "Reusing the existing server."
 elif ! port_is_available; then
-  echo "Port 8000 is already in use, but it is not serving the current FastReads VASC UI."
-  echo "Close the process using port 8000, including any older FastReads viewer server, and try again."
+  echo "Port 8000 is already in use, but it is not serving the current VascReads UI."
+  echo "Close the process using port 8000, including any older VascReads viewer server, and try again."
   exit 1
 else
-  echo "Starting FastReads VASC server..."
+  echo "Starting VascReads server..."
   "$PY" server.py &
   SERVER_PID=$!
 
@@ -130,7 +130,7 @@ echo "Opening viewer..."
 open_viewer
 
 echo ""
-echo "FastReads VASC started at:"
+echo "VascReads started at:"
 echo "  $RUN_URL"
 echo ""
 if [ -n "$SERVER_PID" ]; then

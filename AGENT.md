@@ -1,12 +1,12 @@
-# fastreads-vasc — Codex project instructions
+# vascreads — Codex project instructions
 
 You are working with three sibling Git repositories:
 
 1. `../fastreads` — read-only canonical implementation reference.
 2. `../fastreads-jcb` — read-only secondary reference. This is a different DICOM-oriented adaptation and is not the implementation baseline for this project.
-3. `fastreads-vasc` — the current repository and the only repository you may modify.
+3. `vascreads` — the current repository and the only repository you may modify.
 
-You are currently working inside `fastreads-vasc`.
+You are currently working inside `vascreads`.
 
 Never modify `../fastreads` or `../fastreads-jcb`.
 
@@ -14,7 +14,7 @@ Do not commit, delete, rename, or otherwise alter files in either sibling reposi
 
 ## Project goal
 
-`fastreads-vasc` is a small local physician-facing NIfTI review viewer derived directly from `fastreads`.
+`vascreads` is a small local physician-facing NIfTI review viewer derived directly from `fastreads`.
 
 The first development wave must support three structural MRI modalities for each participant:
 
@@ -54,7 +54,7 @@ Before editing code, inspect at minimum:
 ../fastreads/Start_Viewer.command
 ```
 
-The copied versions already present in `fastreads-vasc` are the starting implementation.
+The copied versions already present in `vascreads` are the starting implementation.
 
 When behavior is ambiguous, prefer preserving the working `fastreads` implementation unless these instructions explicitly require a change.
 
@@ -93,7 +93,7 @@ Keep the repository small.
 The intended first-wave structure is approximately:
 
 ```text
-fastreads-vasc/
+vascreads/
 ├── AGENTS.md
 ├── .gitignore
 ├── README.md
@@ -127,7 +127,7 @@ DATA_DIR = os.path.join(BASE_DIR, "data")
 Participant data will be arranged as:
 
 ```text
-fastreads-vasc/
+vascreads/
 └── data/
     ├── <ID_1>/
     │   ├── <ID_1>_T1.nii.gz
@@ -577,7 +577,7 @@ python server.py
 
 and the existing launch scripts for their respective operating systems.
 
-Adapt all launcher names/messages/readiness checks so they refer to FastReads VASC rather than PET Viewer.
+Adapt all launcher names/messages/readiness checks so they refer to VascReads rather than PET Viewer.
 
 Do not add npm installation.
 
@@ -597,7 +597,7 @@ Launcher readiness checks must test for VASC-specific UI markers rather than old
 
 ## README
 
-After the first-wave implementation works, create or rewrite `README.md` for `fastreads-vasc`.
+After the first-wave implementation works, create or rewrite `README.md` for `vascreads`.
 
 Do not copy the PET README unchanged.
 
