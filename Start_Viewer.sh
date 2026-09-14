@@ -93,9 +93,11 @@ open_viewer() {
 
 cleanup() {
   if [ -n "$SERVER_PID" ]; then
+    local server_pid="$SERVER_PID"
+    SERVER_PID=""
     echo ""
     echo "Stopping FastReads VASC server..."
-    kill "$SERVER_PID" 2>/dev/null || true
+    kill "$server_pid" 2>/dev/null || true
   fi
 }
 trap cleanup EXIT INT TERM
