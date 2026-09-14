@@ -54,6 +54,10 @@
     .reviewField span, .checkRow { font-size:12px; opacity:0.9; }
     .reviewField select { width:100%; box-sizing:border-box; }
     .checkRow { display:flex; align-items:center; gap:8px; }
+    .infarctPresenceGroup { display:grid; gap:10px; padding:8px; border-radius:10px; }
+    .infarctPresenceGroup.hasWarning { outline:2px solid #ff5d5d; outline-offset:1px; }
+    .infarctWarning { color:#ff7b7b; font-size:12px; line-height:1.35; }
+    .infarctWarning[hidden] { display:none; }
 
     details summary { cursor:pointer; user-select:none; font-weight:600; }
 
@@ -144,15 +148,6 @@
 
     <div class="label">Review</div>
     <div class="reviewGrid">
-      <label class="reviewField">
-        <span>Case</span>
-        <select id="caseStatus">
-          <option value="">Unset</option>
-          <option value="Positive">Positive</option>
-          <option value="Negative">Negative</option>
-          <option value="Borderline">Borderline</option>
-        </select>
-      </label>
       <label class="checkRow">
         <input id="flagForReview" type="checkbox">
         Flag for review
@@ -161,6 +156,49 @@
         <input id="needsProcessingQc" type="checkbox">
         Needs processing QC
       </label>
+      <div id="infarctPresenceGroup" class="infarctPresenceGroup" role="group" aria-label="Infarct presence">
+        <label class="reviewField">
+          <span>Cortical Infarcts</span>
+          <select id="corticalInfarcts">
+            <option value="">Unset</option>
+            <option value="No">No</option>
+            <option value="Yes">Yes</option>
+          </select>
+        </label>
+        <label class="reviewField">
+          <span>Deep Infarcts</span>
+          <select id="deepInfarcts">
+            <option value="">Unset</option>
+            <option value="No">No</option>
+            <option value="Yes">Yes</option>
+          </select>
+        </label>
+        <label class="reviewField">
+          <span>Cerebellar Infarcts</span>
+          <select id="cerebellarInfarcts">
+            <option value="">Unset</option>
+            <option value="No">No</option>
+            <option value="Yes">Yes</option>
+          </select>
+        </label>
+      </div>
+      <label class="reviewField">
+        <span>Number of Infarcts</span>
+        <select id="infarctCount" aria-describedby="infarctCountWarning">
+          <option value="0">0</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+          <option value="7">7</option>
+          <option value="8+">8+</option>
+        </select>
+      </label>
+      <div id="infarctCountWarning" class="infarctWarning" role="alert" hidden>
+        Select at least one infarct type as Yes when Number of Infarcts is non-zero.
+      </div>
     </div>
 
     <div class="hr"></div>
@@ -231,7 +269,8 @@
   <script>
     const LS_KEY = "FASTREADS_VASC_NOTES_V1";
     const REVIEW_LS_KEY = "FASTREADS_VASC_REVIEW_V1";
-    const CASE_STATUS_VALUES = new Set(["", "Positive", "Negative", "Borderline"]);
+    const INFARCT_PRESENCE_VALUES = new Set(["", "No", "Yes"]);
+    const INFARCT_COUNT_VALUES = new Set(["0", "1", "2", "3", "4", "5", "6", "7", "8+"]);
     const VIEW = { T1: "T1", T2: "T2", FLAIR: "FLAIR" };
     const VIEW_ORDER = [VIEW.T1, VIEW.T2, VIEW.FLAIR];
     const VIEW_PATH_FIELD = {
@@ -270,9 +309,15 @@
     const imageLevelInput = document.getElementById("imageLevelInput");
 
     const notesEl = document.getElementById("notes");
-    const caseStatusEl = document.getElementById("caseStatus");
     const flagForReviewEl = document.getElementById("flagForReview");
     const needsProcessingQcEl = document.getElementById("needsProcessingQc");
+    const corticalInfarctsEl = document.getElementById("corticalInfarcts");
+    const deepInfarctsEl = document.getElementById("deepInfarcts");
+    const cerebellarInfarctsEl = document.getElementById("cerebellarInfarcts");
+    const infarctCountEl = document.getElementById("infarctCount");
+    const infarctPresenceGroupEl = document.getElementById("infarctPresenceGroup");
+    const infarctCountWarningEl = document.getElementById("infarctCountWarning");
+    const infarctPresenceEls = [corticalInfarctsEl, deepInfarctsEl, cerebellarInfarctsEl];
     const gotoInput = document.getElementById("gotoInput");
     const gotoIndexInput = document.getElementById("gotoIndexInput");
     const gotoIndexMax = document.getElementById("gotoIndexMax");
@@ -295,16 +340,46 @@
     let notesMap = loadLocalNotes();
 
     function defaultReviewState() {
-      return { case_status: "", flag_for_review: false, needs_processing_qc: false };
+      return {
+        flag_for_review: false,
+        needs_processing_qc: false,
+        cortical_infarcts: "",
+        deep_infarcts: "",
+        cerebellar_infarcts: "",
+        infarct_count: "0",
+      };
+    }
+
+    function normalizeReviewChoice(value, allowedValues, defaultValue) {
+      const text = String(value ?? defaultValue).trim();
+      return allowedValues.has(text) ? text : defaultValue;
     }
 
     function normalizeReviewState(value) {
       const review = defaultReviewState();
       if (!value || typeof value !== "object") return review;
-      const caseStatus = String(value.case_status ?? value.IN_Case_Status ?? "").trim();
-      review.case_status = CASE_STATUS_VALUES.has(caseStatus) ? caseStatus : "";
       review.flag_for_review = parseReviewBool(value.flag_for_review ?? value.IN_Flag_For_Review);
       review.needs_processing_qc = parseReviewBool(value.needs_processing_qc ?? value.IN_Needs_Processing_QC);
+      review.cortical_infarcts = normalizeReviewChoice(
+        value.cortical_infarcts ?? value.IN_Cortical_Infarcts,
+        INFARCT_PRESENCE_VALUES,
+        ""
+      );
+      review.deep_infarcts = normalizeReviewChoice(
+        value.deep_infarcts ?? value.IN_Deep_Infarcts,
+        INFARCT_PRESENCE_VALUES,
+        ""
+      );
+      review.cerebellar_infarcts = normalizeReviewChoice(
+        value.cerebellar_infarcts ?? value.IN_Cerebellar_Infarcts,
+        INFARCT_PRESENCE_VALUES,
+        ""
+      );
+      review.infarct_count = normalizeReviewChoice(
+        value.infarct_count ?? value.IN_Infarct_Count,
+        INFARCT_COUNT_VALUES,
+        "0"
+      );
       return review;
     }
 
@@ -334,7 +409,14 @@
 
     function reviewHasData(value) {
       const review = normalizeReviewState(value);
-      return Boolean(review.case_status || review.flag_for_review || review.needs_processing_qc);
+      return Boolean(
+        review.flag_for_review
+        || review.needs_processing_qc
+        || review.cortical_infarcts
+        || review.deep_infarcts
+        || review.cerebellar_infarcts
+        || review.infarct_count !== "0"
+      );
     }
 
     function subjectHasSavedData(id, notesSource=notesMap, reviewSource=reviewMap) {
@@ -1190,20 +1272,54 @@
 
     function syncReviewControlsForCurrentSubject() {
       const review = normalizeReviewState(reviewMap[currentId]);
-      caseStatusEl.value = review.case_status;
       flagForReviewEl.checked = review.flag_for_review;
       needsProcessingQcEl.checked = review.needs_processing_qc;
+      corticalInfarctsEl.value = review.cortical_infarcts;
+      deepInfarctsEl.value = review.deep_infarcts;
+      cerebellarInfarctsEl.value = review.cerebellar_infarcts;
+      infarctCountEl.value = review.infarct_count;
+      renderInfarctCountWarning();
+    }
+
+    function hasSelectedInfarctType() {
+      return infarctPresenceEls.some((element) => element.value === "Yes");
+    }
+
+    function allInfarctTypesAreNo() {
+      return infarctPresenceEls.every((element) => element.value === "No");
+    }
+
+    function renderInfarctCountWarning() {
+      const showWarning = infarctCountEl.value !== "0" && !hasSelectedInfarctType();
+      infarctPresenceGroupEl.classList.toggle("hasWarning", showWarning);
+      infarctCountWarningEl.hidden = !showWarning;
+      for (const element of infarctPresenceEls) {
+        element.setAttribute("aria-invalid", String(showWarning));
+      }
     }
 
     function saveCurrentReviewFromControls() {
       if (!currentId) return;
       reviewMap[currentId] = {
-        case_status: CASE_STATUS_VALUES.has(caseStatusEl.value) ? caseStatusEl.value : "",
         flag_for_review: flagForReviewEl.checked,
         needs_processing_qc: needsProcessingQcEl.checked,
+        cortical_infarcts: normalizeReviewChoice(corticalInfarctsEl.value, INFARCT_PRESENCE_VALUES, ""),
+        deep_infarcts: normalizeReviewChoice(deepInfarctsEl.value, INFARCT_PRESENCE_VALUES, ""),
+        cerebellar_infarcts: normalizeReviewChoice(cerebellarInfarctsEl.value, INFARCT_PRESENCE_VALUES, ""),
+        infarct_count: normalizeReviewChoice(infarctCountEl.value, INFARCT_COUNT_VALUES, "0"),
       };
       saveLocalReview(reviewMap);
+      renderInfarctCountWarning();
       statusEl.textContent = "Review fields autosaved locally (not yet written to notes.csv).";
+    }
+
+    function handleInfarctPresenceChange(event) {
+      if (event.target.value === "Yes") {
+        infarctCountEl.value = "1";
+      } else if (allInfarctTypesAreNo()) {
+        infarctCountEl.value = "0";
+      }
+      saveCurrentReviewFromControls();
     }
 
     // ---------------- Navigation ----------------
@@ -1301,20 +1417,27 @@
       statusEl.textContent = "Notes autosaved locally (not yet written to notes.csv).";
     });
 
-    caseStatusEl.addEventListener("change", saveCurrentReviewFromControls);
     flagForReviewEl.addEventListener("change", saveCurrentReviewFromControls);
     needsProcessingQcEl.addEventListener("change", saveCurrentReviewFromControls);
+    for (const element of infarctPresenceEls) {
+      element.addEventListener("change", handleInfarctPresenceChange);
+    }
+    infarctCountEl.addEventListener("change", saveCurrentReviewFromControls);
 
     clearBtn.addEventListener("click", () => {
       if (!currentId) return;
       notesEl.value = "";
-      caseStatusEl.value = "";
       flagForReviewEl.checked = false;
       needsProcessingQcEl.checked = false;
+      corticalInfarctsEl.value = "";
+      deepInfarctsEl.value = "";
+      cerebellarInfarctsEl.value = "";
+      infarctCountEl.value = "0";
       notesMap[currentId] = "";
       reviewMap[currentId] = defaultReviewState();
       saveLocalNotes(notesMap);
       saveLocalReview(reviewMap);
+      renderInfarctCountWarning();
       statusEl.textContent = `Cleared notes and review fields for ${currentId}.`;
     });
 

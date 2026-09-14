@@ -13,11 +13,15 @@ NOTES_CSV = "notes.csv"
 NOTES_FIELDS = [
     "ID",
     "IN_Notes",
-    "IN_Case_Status",
     "IN_Flag_For_Review",
     "IN_Needs_Processing_QC",
+    "IN_Cortical_Infarcts",
+    "IN_Deep_Infarcts",
+    "IN_Cerebellar_Infarcts",
+    "IN_Infarct_Count",
 ]
-VALID_CASE_STATUSES = {"", "Positive", "Negative", "Borderline"}
+VALID_INFARCT_PRESENCE = {"", "No", "Yes"}
+VALID_INFARCT_COUNTS = {"0", "1", "2", "3", "4", "5", "6", "7", "8+"}
 
 MODALITY_FIELDS = {
     "T1": "t1_path",
@@ -78,13 +82,29 @@ def _csv_bool(value):
 def _normalize_review(value):
     if not isinstance(value, dict):
         value = {}
-    case_status = str(value.get("case_status") or value.get("IN_Case_Status") or "").strip()
-    if case_status not in VALID_CASE_STATUSES:
-        case_status = ""
+    cortical_infarcts = str(value.get("cortical_infarcts", value.get("IN_Cortical_Infarcts", "")) or "").strip()
+    if cortical_infarcts not in VALID_INFARCT_PRESENCE:
+        cortical_infarcts = ""
+
+    deep_infarcts = str(value.get("deep_infarcts", value.get("IN_Deep_Infarcts", "")) or "").strip()
+    if deep_infarcts not in VALID_INFARCT_PRESENCE:
+        deep_infarcts = ""
+
+    cerebellar_infarcts = str(value.get("cerebellar_infarcts", value.get("IN_Cerebellar_Infarcts", "")) or "").strip()
+    if cerebellar_infarcts not in VALID_INFARCT_PRESENCE:
+        cerebellar_infarcts = ""
+
+    infarct_count = str(value.get("infarct_count", value.get("IN_Infarct_Count", "0")) or "0").strip()
+    if infarct_count not in VALID_INFARCT_COUNTS:
+        infarct_count = "0"
+
     return {
-        "case_status": case_status,
         "flag_for_review": _parse_bool(value.get("flag_for_review", value.get("IN_Flag_For_Review"))),
         "needs_processing_qc": _parse_bool(value.get("needs_processing_qc", value.get("IN_Needs_Processing_QC"))),
+        "cortical_infarcts": cortical_infarcts,
+        "deep_infarcts": deep_infarcts,
+        "cerebellar_infarcts": cerebellar_infarcts,
+        "infarct_count": infarct_count,
     }
 
 
@@ -120,9 +140,12 @@ def write_notes_csv(notes_map, review_map=None, subject_ids=None):
         rows.append({
             "ID": sid,
             "IN_Notes": notes_map.get(sid, ""),
-            "IN_Case_Status": review["case_status"],
             "IN_Flag_For_Review": _csv_bool(review["flag_for_review"]),
             "IN_Needs_Processing_QC": _csv_bool(review["needs_processing_qc"]),
+            "IN_Cortical_Infarcts": review["cortical_infarcts"],
+            "IN_Deep_Infarcts": review["deep_infarcts"],
+            "IN_Cerebellar_Infarcts": review["cerebellar_infarcts"],
+            "IN_Infarct_Count": review["infarct_count"],
         })
 
     with open(NOTES_CSV, "w", encoding="utf-8", newline="") as f:
@@ -131,7 +154,17 @@ def write_notes_csv(notes_map, review_map=None, subject_ids=None):
         for r in rows:
             writer.writerow(r)
 
-    return sum(1 for r in rows if r["IN_Notes"] or r["IN_Case_Status"] or r["IN_Flag_For_Review"] == "TRUE" or r["IN_Needs_Processing_QC"] == "TRUE")
+    return sum(
+        1
+        for r in rows
+        if r["IN_Notes"]
+        or r["IN_Flag_For_Review"] == "TRUE"
+        or r["IN_Needs_Processing_QC"] == "TRUE"
+        or r["IN_Cortical_Infarcts"]
+        or r["IN_Deep_Infarcts"]
+        or r["IN_Cerebellar_Infarcts"]
+        or r["IN_Infarct_Count"] != "0"
+    )
 
 
 class Handler(SimpleHTTPRequestHandler):
