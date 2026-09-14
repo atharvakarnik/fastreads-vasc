@@ -1,6 +1,6 @@
 # VascReads
 
-VascReads is a lightweight, local NIfTI viewer for reviewing structural MRI images in a web browser. Wave 1 supports one T1, T2, and FLAIR image per participant and keeps the source images, notes, and review data on the local computer.
+VascReads is a lightweight, local NIfTI viewer for reviewing structural MRI images in a web browser. Current implementation supports one T1, T2, and FLAIR image per participant and keeps the source images, notes, and review data on the local computer. Future scope is to add SWI scans with microhemorrhage model.
 
 The viewer uses vanilla HTML/CSS/JavaScript, the vendored NiiVue build, and a Python standard-library HTTP server. It has no build step or runtime network dependency. It has not been clinically or diagnostically validated.
 
@@ -61,7 +61,7 @@ Notes and the existing Wave 1 review fields are participant-specific. Changes au
 
 `notes.csv` contains local physician review data and is intentionally ignored by Git, along with medical imaging data. Do not upload or commit either.
 
-## Wave 1 scope
+## Scope
 
 The viewer displays one structural image at a time and provides T1, T2, and FLAIR selection, orthogonal navigation, independent per-pane zoom/reset, crosshair visibility, and linked Min/Max plus Window/Level controls. Intensity adjustments are kept separate for each participant and modality while that participant is active.
 
