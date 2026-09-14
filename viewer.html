@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>PET MNI Viewer</title>
+  <title>FastReads VASC</title>
 
   <!-- Prevent favicon.ico 404 -->
   <link rel="icon" href="data:,">
@@ -57,35 +57,28 @@
 
     details summary { cursor:pointer; user-select:none; font-weight:600; }
 
-    .voiCard { margin-bottom:12px; padding:10px; border-radius:12px; border:1px solid rgba(255,255,255,0.12); background:rgba(255,255,255,0.03); }
-    .voiTop { display:flex; align-items:center; justify-content:space-between; gap:10px; }
-    .voiName { font-weight:600; }
-    .voiMeta { font-size:12px; opacity:0.85; }
-    .voiRow { display:flex; align-items:center; gap:10px; margin-top:8px; }
-    .voiRow label { font-size:12px; opacity:0.9; width:60px; }
-    .spoilerCard { width:100%; display:flex; flex-direction:column; gap:10px; padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,0.14); background:linear-gradient(180deg, rgba(19,34,74,0.95), rgba(11,20,48,0.95)); text-align:left; }
-    .spoilerCardHeader { display:flex; align-items:center; justify-content:space-between; gap:10px; font-size:12px; opacity:0.9; }
-    .spoilerCardHint { opacity:0.75; }
-    .spoilerCardValue { font-size:20px; font-weight:700; letter-spacing:0.02em; transition:color 0.15s ease, text-shadow 0.15s ease, filter 0.15s ease; }
-    .spoilerCard.isHidden .spoilerCardValue { color:transparent; text-shadow:0 0 10px rgba(230,237,247,0.9); filter:blur(6px); user-select:none; }
   </style>
 </head>
 
 <body>
   <div id="left">
-    <div class="label">View mode</div>
+    <div class="label">View</div>
     <div class="row" style="margin-top:6px;">
       <label style="display:flex; align-items:center; gap:6px; font-size:12px; opacity:0.95;">
-        <input id="viewPet" type="radio" name="viewMode" value="PET" checked>
-        PET
+        <input id="viewT1" type="radio" name="viewMode" value="T1" checked disabled>
+        T1
       </label>
       <label style="display:flex; align-items:center; gap:6px; font-size:12px; opacity:0.95;">
-        <input id="viewMni" type="radio" name="viewMode" value="MNI">
-        MNI
+        <input id="viewT2" type="radio" name="viewMode" value="T2" disabled>
+        T2
+      </label>
+      <label style="display:flex; align-items:center; gap:6px; font-size:12px; opacity:0.95;">
+        <input id="viewFlair" type="radio" name="viewMode" value="FLAIR" disabled>
+        FLAIR
       </label>
     </div>
 
-    <div class="label">Subject</div>
+    <div class="label">Participant</div>
     <div style="display:flex; align-items:center; gap:10px; margin-top:6px;">
       <div class="chip">ID: <span id="sid" class="mono">------</span></div>
       <div class="chip">Index: <span id="sidx" class="mono">-</span>/<span id="scount" class="mono">-</span></div>
@@ -95,13 +88,13 @@
       <button id="prevBtn">← Prev</button>
       <button id="nextBtn">Next →</button>
     </div>
-    <label class="checkRow" title="When enabled, Prev/Next skip subjects that already have saved data in notes.csv.">
+    <label class="checkRow" title="When enabled, Prev/Next skip participants that already have saved data in notes.csv.">
       <input id="skipReadSubjects" type="checkbox">
       Skip saved reads
     </label>
     <div class="status">Saved reads: <span id="savedReadCount" class="mono">0</span>/<span id="savedReadTotal" class="mono">-</span></div>
 
-    <div class="label" style="margin-top:6px;">Go to ID (<span id="gotoDigits">?</span> digits)</div>
+    <div class="label" style="margin-top:6px;">Go to participant ID</div>
     <div class="row">
       <input id="gotoInput" class="mono" placeholder="Loading IDs..." type="text" />
       <button id="goBtn">Go</button>
@@ -116,80 +109,35 @@
     <div class="hr"></div>
 
     <div>
-      <div class="label">PET intensity range</div>
+      <div class="label">Intensity range</div>
       <div class="rangeGrid">
         <label class="rangeField">
           <span>Min</span>
-          <input id="petRangeMin" class="mono" type="number" step="any" inputmode="decimal" disabled>
+          <input id="imageRangeMin" class="mono" type="number" step="any" inputmode="decimal" disabled>
         </label>
         <label class="rangeField">
           <span>Max</span>
-          <input id="petRangeMax" class="mono" type="number" step="any" inputmode="decimal" disabled>
+          <input id="imageRangeMax" class="mono" type="number" step="any" inputmode="decimal" disabled>
         </label>
-        <button id="petRangeReset" class="smallBtn" type="button" disabled>Auto</button>
+        <button id="imageRangeReset" class="smallBtn" type="button" disabled>Auto</button>
       </div>
       <div class="wlGrid">
         <label class="sliderField">
           <span>Window</span>
           <div class="sliderRow">
-            <input id="petWindowSlider" type="range" step="any" disabled>
-            <input id="petWindowInput" class="mono" type="number" step="any" inputmode="decimal" disabled>
+            <input id="imageWindowSlider" type="range" step="any" disabled>
+            <input id="imageWindowInput" class="mono" type="number" step="any" inputmode="decimal" disabled>
           </div>
         </label>
         <label class="sliderField">
           <span>Level</span>
           <div class="sliderRow">
-            <input id="petLevelSlider" type="range" step="any" disabled>
-            <input id="petLevelInput" class="mono" type="number" step="any" inputmode="decimal" disabled>
+            <input id="imageLevelSlider" type="range" step="any" disabled>
+            <input id="imageLevelInput" class="mono" type="number" step="any" inputmode="decimal" disabled>
           </div>
         </label>
       </div>
-      <div class="status">Adjust the displayed PET calibration range for the current subject.</div>
-    </div>
-
-    <div class="hr"></div>
-
-    <div id="petOnlyControls">
-      <div class="label">PET display controls</div>
-      <div class="row" style="margin-top:6px;">
-        <label style="display:flex; align-items:center; gap:8px; font-size:12px; opacity:0.95;">
-          <input id="petInvert" type="checkbox" checked>
-          Invert grayscale (black on white)
-        </label>
-      </div>
-    </div>
-
-    <div id="mniOnlyControls">
-      <div class="label">PET opacity</div>
-      <input id="petOpacity" type="range" min="0" max="1" step="0.05" value="1.00">
-      <div class="status">Value: <span class="mono" id="petOpacityLabel">1.00</span></div>
-
-      <div class="hr"></div>
-
-      <div class="label">MNI template controls</div>
-      <div class="row">
-        <label style="display:flex; align-items:center; gap:8px; font-size:12px; opacity:0.9;">
-          <input id="mniVisible" type="checkbox" checked>
-          Show MNI template
-        </label>
-      </div>
-      <input id="mniOpacity" type="range" min="0" max="1" step="0.05" value="1.00">
-      <div class="status">Value: <span class="mono" id="mniOpacityLabel">1.00</span></div>
-
-      <div class="hr"></div>
-
-      <details open>
-        <summary>VOI Controls (toggle + opacity)</summary>
-
-        <div style="margin-top:10px;">
-          <div class="label">All VOIs opacity</div>
-          <input id="masterOpacity" type="range" min="0" max="1" step="0.05" value="0.30">
-          <div class="status">Value: <span class="mono" id="masterOpacityLabel">0.30</span></div>
-        </div>
-
-        <div class="hr"></div>
-        <div id="voiControls"></div>
-      </details>
+      <div class="status">Adjust the displayed intensity range for the current image.</div>
     </div>
 
     <div class="hr"></div>
@@ -227,22 +175,13 @@
 
     <div class="hr"></div>
 
-    <button id="centiloidReveal" class="spoilerCard isHidden" type="button" aria-expanded="false">
-      <div class="spoilerCardHeader">
-        <span>Centiloid</span>
-        <span id="centiloidHint" class="spoilerCardHint">Click to reveal</span>
-      </div>
-      <div id="centiloidValue" class="spoilerCardValue mono">NotFound</div>
-    </button>
-
     <div class="status" id="status"></div>
   </div>
 
   <div id="viewerWrap">
     <div id="topBar">
-      <div class="chip">View: <span class="mono" id="viewModeChip">PET</span></div>
-      <div class="chip" id="templateChip">Template: <span class="mono">Atlases/avg152T1.nii.gz</span></div>
-      <div class="chip">Source: <span class="mono" id="petPathChip">-</span></div>
+      <div class="chip">View: <span class="mono" id="viewModeChip">T1</span></div>
+      <div class="chip">Source: <span class="mono" id="sourcePathChip">-</span></div>
       <div class="toolGroup" aria-label="Slice tools">
         <button id="sliceToolNavigate" class="toolBtn isActive" type="button" title="Default slice navigation tool">
           <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -290,35 +229,19 @@
   <script src="./niivue.umd.js"></script>
 
   <script>
-    // ---------------- Files ----------------
-    const ATLAS = {
-      template: "Atlases/avg152T1.nii.gz",
-      whlcbl:   "Atlases/voi_WhlCbl_2mm.nii.gz",
-      ctx:      "Atlases/voi_ctx_2mm.nii.gz",
-      pons:     "Atlases/voi_Pons_2mm.nii.gz",
-      cerebgry: "Atlases/voi_CerebGry_2mm.nii.gz",
-      whlcblbs: "Atlases/voi_WhlCblBrnStm_2mm.nii.gz",
-    };
-
-    // VOI colors (hardcoded)
-    const VOIS = [
-      { key: "whlcbl",   label: "Whole Cerebellum",     uiHex: "#2ecc71" }, // green
-      { key: "ctx",      label: "Cortex",              uiHex: "#e74c3c" }, // red
-      { key: "pons",     label: "Pons",                uiHex: "#f1c40f" }, // yellow
-      { key: "cerebgry", label: "Cerebellar Gray",     uiHex: "#00bcd4" }, // cyan
-      { key: "whlcblbs", label: "WhlCbl + Brainstem",  uiHex: "#9b59b6" }, // magenta
-    ];
-
-    const DEFAULT_VOI_OPACITY = 0.30;
-    const DEFAULT_VISIBLE_VOIS = new Set(["whlcbl", "ctx"]);
-    const LS_KEY = "PET_VIEWER_NOTES_FULL_ONLY_V2";
-    const REVIEW_LS_KEY = "PET_VIEWER_REVIEW_FIELDS_V1";
+    const LS_KEY = "FASTREADS_VASC_NOTES_V1";
+    const REVIEW_LS_KEY = "FASTREADS_VASC_REVIEW_V1";
     const CASE_STATUS_VALUES = new Set(["", "Positive", "Negative", "Borderline"]);
-    const VIEW = { PET: "PET", MNI: "MNI" };
+    const VIEW = { T1: "T1", T2: "T2", FLAIR: "FLAIR" };
+    const VIEW_ORDER = [VIEW.T1, VIEW.T2, VIEW.FLAIR];
+    const VIEW_PATH_FIELD = {
+      [VIEW.T1]: "t1_path",
+      [VIEW.T2]: "t2_path",
+      [VIEW.FLAIR]: "flair_path",
+    };
     const SLICE_TOOL = { NAVIGATE: "navigate", ZOOM: "zoom", RESET: "reset" };
     const ORIENTATION = { AXIAL: 0, CORONAL: 1, SAGITTAL: 2 };
     const ORTHOGONAL_ORIENTATIONS = [ORIENTATION.AXIAL, ORIENTATION.CORONAL, ORIENTATION.SAGITTAL];
-    const SMOOTH_CONTINUOUS_OVERLAY_COLORMAP_TYPE = 1;
 
     // ---------------- UI ----------------
     const sidEl = document.getElementById("sid");
@@ -327,37 +250,32 @@
     const statusEl = document.getElementById("status");
     const topStatusEl = document.getElementById("topStatus");
     const viewModeChip = document.getElementById("viewModeChip");
-    const templateChip = document.getElementById("templateChip");
-    const petPathChip = document.getElementById("petPathChip");
+    const sourcePathChip = document.getElementById("sourcePathChip");
     const sliceToolNavigateBtn = document.getElementById("sliceToolNavigate");
     const sliceToolZoomBtn = document.getElementById("sliceToolZoom");
     const sliceToolResetBtn = document.getElementById("sliceToolReset");
     const crosshairToggleBtn = document.getElementById("crosshairToggle");
 
-    const viewPet = document.getElementById("viewPet");
-    const viewMni = document.getElementById("viewMni");
-    const petOnlyControls = document.getElementById("petOnlyControls");
-    const mniOnlyControls = document.getElementById("mniOnlyControls");
-    const petInvert = document.getElementById("petInvert");
-    const petRangeMin = document.getElementById("petRangeMin");
-    const petRangeMax = document.getElementById("petRangeMax");
-    const petRangeReset = document.getElementById("petRangeReset");
-    const petWindowSlider = document.getElementById("petWindowSlider");
-    const petWindowInput = document.getElementById("petWindowInput");
-    const petLevelSlider = document.getElementById("petLevelSlider");
-    const petLevelInput = document.getElementById("petLevelInput");
+    const viewInputs = {
+      [VIEW.T1]: document.getElementById("viewT1"),
+      [VIEW.T2]: document.getElementById("viewT2"),
+      [VIEW.FLAIR]: document.getElementById("viewFlair"),
+    };
+    const imageRangeMin = document.getElementById("imageRangeMin");
+    const imageRangeMax = document.getElementById("imageRangeMax");
+    const imageRangeReset = document.getElementById("imageRangeReset");
+    const imageWindowSlider = document.getElementById("imageWindowSlider");
+    const imageWindowInput = document.getElementById("imageWindowInput");
+    const imageLevelSlider = document.getElementById("imageLevelSlider");
+    const imageLevelInput = document.getElementById("imageLevelInput");
 
     const notesEl = document.getElementById("notes");
     const caseStatusEl = document.getElementById("caseStatus");
     const flagForReviewEl = document.getElementById("flagForReview");
     const needsProcessingQcEl = document.getElementById("needsProcessingQc");
     const gotoInput = document.getElementById("gotoInput");
-    const gotoDigits = document.getElementById("gotoDigits");
     const gotoIndexInput = document.getElementById("gotoIndexInput");
     const gotoIndexMax = document.getElementById("gotoIndexMax");
-    const centiloidReveal = document.getElementById("centiloidReveal");
-    const centiloidHint = document.getElementById("centiloidHint");
-    const centiloidValue = document.getElementById("centiloidValue");
 
     const prevBtn = document.getElementById("prevBtn");
     const nextBtn = document.getElementById("nextBtn");
@@ -368,17 +286,6 @@
     const savedReadTotalEl = document.getElementById("savedReadTotal");
     const saveBtn = document.getElementById("saveBtn");
     const clearBtn = document.getElementById("clearBtn");
-
-    const petOpacity = document.getElementById("petOpacity");
-    const petOpacityLabel = document.getElementById("petOpacityLabel");
-
-    const mniVisible = document.getElementById("mniVisible");
-    const mniOpacity = document.getElementById("mniOpacity");
-    const mniOpacityLabel = document.getElementById("mniOpacityLabel");
-
-    const voiControlsDiv = document.getElementById("voiControls");
-    const masterOpacity = document.getElementById("masterOpacity");
-    const masterOpacityLabel = document.getElementById("masterOpacityLabel");
 
     // ---------------- Notes ----------------
     function loadLocalNotes() {
@@ -452,31 +359,18 @@
       savedReadTotalEl.textContent = subjects.length ? String(subjects.length) : "-";
     }
 
-    // ---------------- VOI state ----------------
-    let voiState = {};
-    function initVoiState(op=DEFAULT_VOI_OPACITY) {
-      voiState = {};
-      for (const v of VOIS) {
-        voiState[v.key] = { visible: DEFAULT_VISIBLE_VOIS.has(v.key), opacity: op };
-      }
-      masterOpacity.value = String(op);
-      masterOpacityLabel.textContent = op.toFixed(2);
+    // ---------------- Image intensity range state ----------------
+    function createEmptyRangeByView() {
+      return Object.fromEntries(VIEW_ORDER.map((view) => [view, null]));
     }
 
-    // ---------------- PET intensity range state ----------------
-    const petImageDefaultRanges = new WeakMap();
-    let petRangeState = {
+    const imageDefaultRanges = new WeakMap();
+    let imageRangeState = {
       subjectId: null,
-      overrideRange: null,
-      defaultRangeByView: { [VIEW.PET]: null, [VIEW.MNI]: null },
-      sliderBoundsByView: { [VIEW.PET]: null, [VIEW.MNI]: null },
+      overrideRangeByView: createEmptyRangeByView(),
+      defaultRangeByView: createEmptyRangeByView(),
+      sliderBoundsByView: createEmptyRangeByView(),
       appliedRange: null,
-    };
-
-    let centiloidsMap = {};
-    let centiloidState = {
-      subjectId: null,
-      revealed: false,
     };
 
     // ---------------- Slice zoom state ----------------
@@ -565,11 +459,11 @@
     }
 
     function ensureWindowLevelSliderBounds(view, range=null) {
-      let bounds = petRangeState.sliderBoundsByView[view];
+      let bounds = imageRangeState.sliderBoundsByView[view];
       if (!bounds) {
-        const seedRange = range || petRangeState.defaultRangeByView[view] || displayedPetRangeForView(view);
+        const seedRange = range || imageRangeState.defaultRangeByView[view] || displayedImageRangeForView(view);
         bounds = seedRange ? createWindowLevelSliderBounds(seedRange) : null;
-        petRangeState.sliderBoundsByView[view] = bounds;
+        imageRangeState.sliderBoundsByView[view] = bounds;
       }
 
       return bounds;
@@ -579,77 +473,56 @@
       return Math.min(max, Math.max(min, value));
     }
 
-    function syncPetRangeControls(range) {
-      petRangeMin.value = range ? formatRangeNumber(range.min) : "";
-      petRangeMax.value = range ? formatRangeNumber(range.max) : "";
+    function syncImageRangeControls(range) {
+      imageRangeMin.value = range ? formatRangeNumber(range.min) : "";
+      imageRangeMax.value = range ? formatRangeNumber(range.max) : "";
 
       const windowLevel = rangeToWindowLevel(range);
-      petWindowInput.value = windowLevel ? formatRangeNumber(windowLevel.window) : "";
-      petLevelInput.value = windowLevel ? formatRangeNumber(windowLevel.level) : "";
+      imageWindowInput.value = windowLevel ? formatRangeNumber(windowLevel.window) : "";
+      imageLevelInput.value = windowLevel ? formatRangeNumber(windowLevel.level) : "";
 
       const bounds = ensureWindowLevelSliderBounds(currentView, range);
       if (bounds) {
-        petWindowSlider.min = formatRangeNumber(bounds.windowMin);
-        petWindowSlider.max = formatRangeNumber(bounds.windowMax);
-        petLevelSlider.min = formatRangeNumber(bounds.levelMin);
-        petLevelSlider.max = formatRangeNumber(bounds.levelMax);
-        petWindowSlider.value = windowLevel
+        imageWindowSlider.min = formatRangeNumber(bounds.windowMin);
+        imageWindowSlider.max = formatRangeNumber(bounds.windowMax);
+        imageLevelSlider.min = formatRangeNumber(bounds.levelMin);
+        imageLevelSlider.max = formatRangeNumber(bounds.levelMax);
+        imageWindowSlider.value = windowLevel
           ? formatRangeNumber(clampToBounds(windowLevel.window, bounds.windowMin, bounds.windowMax))
-          : petWindowSlider.min;
-        petLevelSlider.value = windowLevel
+          : imageWindowSlider.min;
+        imageLevelSlider.value = windowLevel
           ? formatRangeNumber(clampToBounds(windowLevel.level, bounds.levelMin, bounds.levelMax))
-          : petLevelSlider.min;
+          : imageLevelSlider.min;
       } else {
-        petWindowSlider.min = "0";
-        petWindowSlider.max = "1";
-        petWindowSlider.value = "0";
-        petLevelSlider.min = "0";
-        petLevelSlider.max = "1";
-        petLevelSlider.value = "0";
+        imageWindowSlider.min = "0";
+        imageWindowSlider.max = "1";
+        imageWindowSlider.value = "0";
+        imageLevelSlider.min = "0";
+        imageLevelSlider.max = "1";
+        imageLevelSlider.value = "0";
       }
     }
 
-    function setPetRangeControlsEnabled(enabled) {
-      petRangeMin.disabled = !enabled;
-      petRangeMax.disabled = !enabled;
-      petRangeReset.disabled = !enabled;
-      petWindowSlider.disabled = !enabled;
-      petWindowInput.disabled = !enabled;
-      petLevelSlider.disabled = !enabled;
-      petLevelInput.disabled = !enabled;
+    function setImageRangeControlsEnabled(enabled) {
+      imageRangeMin.disabled = !enabled;
+      imageRangeMax.disabled = !enabled;
+      imageRangeReset.disabled = !enabled;
+      imageWindowSlider.disabled = !enabled;
+      imageWindowInput.disabled = !enabled;
+      imageLevelSlider.disabled = !enabled;
+      imageLevelInput.disabled = !enabled;
     }
 
-    function resetPetRangeState(subjectId) {
-      petRangeState = {
+    function resetImageRangeState(subjectId) {
+      imageRangeState = {
         subjectId,
-        overrideRange: null,
-        defaultRangeByView: { [VIEW.PET]: null, [VIEW.MNI]: null },
-        sliderBoundsByView: { [VIEW.PET]: null, [VIEW.MNI]: null },
+        overrideRangeByView: createEmptyRangeByView(),
+        defaultRangeByView: createEmptyRangeByView(),
+        sliderBoundsByView: createEmptyRangeByView(),
         appliedRange: null,
       };
-      syncPetRangeControls(null);
-      setPetRangeControlsEnabled(false);
-    }
-
-    function centiloidValueForSubject(subjectId) {
-      const raw = subjectId ? centiloidsMap[subjectId] : null;
-      const text = `${raw ?? ""}`.trim();
-      return text || "NotFound";
-    }
-
-    function renderCentiloidState() {
-      centiloidValue.textContent = centiloidValueForSubject(centiloidState.subjectId);
-      centiloidReveal.classList.toggle("isHidden", !centiloidState.revealed);
-      centiloidReveal.setAttribute("aria-expanded", String(centiloidState.revealed));
-      centiloidHint.textContent = centiloidState.revealed ? "Click to hide" : "Click to reveal";
-    }
-
-    function setCentiloidSubject(subjectId, resetReveal=false) {
-      if (resetReveal || centiloidState.subjectId !== subjectId) {
-        centiloidState.revealed = false;
-      }
-      centiloidState.subjectId = subjectId;
-      renderCentiloidState();
+      syncImageRangeControls(null);
+      setImageRangeControlsEnabled(false);
     }
 
     // ---------------- Niivue ----------------
@@ -862,41 +735,6 @@
     // ---------------- Safe setters (INDEX-based) ----------------
     function volCount() { return Array.isArray(nv.volumes) ? nv.volumes.length : 0; }
 
-    function hexToRgb(hex) {
-      const h = (hex || "").replace("#", "").trim();
-      if (h.length !== 6) return { r: 255, g: 255, b: 255 };
-      return {
-        r: parseInt(h.slice(0, 2), 16),
-        g: parseInt(h.slice(2, 4), 16),
-        b: parseInt(h.slice(4, 6), 16),
-      };
-    }
-
-    // Create a 2-entry label LUT: 0 transparent, 1 = chosen color
-    function makeBinaryLabelLUT(hex) {
-      const { r, g, b } = hexToRgb(hex);
-      return {
-        R: [0, r],
-        G: [0, g],
-        B: [0, b],
-        A: [0, 255],
-        I: [0, 1],
-      };
-    }
-
-    // Apply LUT to an NVImage in a version-safe way
-    function applyLabelLUTToImage(img, hex) {
-      const lut = makeBinaryLabelLUT(hex);
-      try {
-        if (typeof img.setColormapLabel === "function") {
-          img.setColormapLabel(lut);
-        } else {
-          img.colormapLabel = lut;
-        }
-      } catch (e) {
-        console.warn("Could not apply label LUT to VOI:", e);
-      }
-    }
     function setOpacitySafe(i, op) {
       if (i < 0 || i >= volCount()) return;
       try { nv.setOpacity(i, op); }
@@ -913,11 +751,6 @@
       }
     }
 
-    function setColormapTypeSafe(i, type) {
-      if (i < 0 || i >= volCount()) return;
-      try { nv.volumes[i].colormapType = type; } catch {}
-    }
-
     function setColormapInvertSafe(i, invert) {
       if (i < 0 || i >= volCount()) return;
       try { nv.volumes[i].colormapInvert = !!invert; } catch {}
@@ -931,20 +764,13 @@
       }
     }
 
-    function setInterpSafe(i, isLinear) {
-      // Masks look better with nearest neighbor (if API exists)
-      try { nv.setInterpolation && nv.setInterpolation(i, isLinear); } catch {}
-    }
-
     function refresh() {
       try { nv.updateGLVolume && nv.updateGLVolume(); } catch {}
       scheduleToolOverlayRedraw();
     }
 
-    function activePetVolumeIndex(view=currentView) {
-      if (view === VIEW.PET) return volCount() >= 1 ? 0 : -1;
-      if (view === VIEW.MNI) return volCount() >= 2 ? 1 : -1;
-      return -1;
+    function activeImageVolumeIndex() {
+      return volCount() >= 1 ? 0 : -1;
     }
 
     function readImageRange(img, minKey, maxKey) {
@@ -953,94 +779,93 @@
       return makeRange(mn, mx);
     }
 
-    function rememberPetImageDefaultRange(img) {
+    function rememberImageDefaultRange(img) {
       if (!img) return null;
-      const cached = petImageDefaultRanges.get(img);
+      const cached = imageDefaultRanges.get(img);
       if (cached) return cloneRange(cached);
 
       const range = readImageRange(img, "cal_min", "cal_max")
         || readImageRange(img, "robust_min", "robust_max")
         || readImageRange(img, "global_min", "global_max");
 
-      if (range) petImageDefaultRanges.set(img, cloneRange(range));
+      if (range) imageDefaultRanges.set(img, cloneRange(range));
       return cloneRange(range);
     }
 
-    function displayedPetRangeForView(view=currentView) {
+    function displayedImageRangeForView(view=currentView) {
       return cloneRange(
-        petRangeState.overrideRange
-        || petRangeState.defaultRangeByView[view]
-        || petRangeState.appliedRange
+        imageRangeState.overrideRangeByView[view]
+        || imageRangeState.defaultRangeByView[view]
       );
     }
 
-    function refreshPetRangeUi() {
-      syncPetRangeControls(displayedPetRangeForView(currentView));
-      setPetRangeControlsEnabled(activePetVolumeIndex() >= 0 && !!displayedPetRangeForView(currentView));
+    function refreshImageRangeUi() {
+      syncImageRangeControls(displayedImageRangeForView(currentView));
+      setImageRangeControlsEnabled(activeImageVolumeIndex() >= 0 && !!displayedImageRangeForView(currentView));
     }
 
-    function applyPetRangeToActiveVolume() {
-      const volumeIndex = activePetVolumeIndex();
-      const range = displayedPetRangeForView(currentView);
+    function applyImageRangeToActiveVolume() {
+      const volumeIndex = activeImageVolumeIndex();
+      const range = displayedImageRangeForView(currentView);
       if (volumeIndex < 0 || !range) {
-        petRangeState.appliedRange = null;
-        refreshPetRangeUi();
+        imageRangeState.appliedRange = null;
+        refreshImageRangeUi();
         return false;
       }
 
       setCalibrationSafe(volumeIndex, range.min, range.max);
-      petRangeState.appliedRange = cloneRange(range);
-      refreshPetRangeUi();
+      imageRangeState.appliedRange = cloneRange(range);
+      refreshImageRangeUi();
       return true;
     }
 
-    function updatePetRangeForLoadedImage(view, img) {
-      const defaultRange = rememberPetImageDefaultRange(img);
-      petRangeState.defaultRangeByView[view] = defaultRange;
-      petRangeState.sliderBoundsByView[view] = defaultRange ? createWindowLevelSliderBounds(defaultRange) : null;
-      applyPetRangeToActiveVolume();
+    function updateImageRangeForLoadedImage(view, img) {
+      const defaultRange = rememberImageDefaultRange(img);
+      imageRangeState.defaultRangeByView[view] = defaultRange;
+      imageRangeState.sliderBoundsByView[view] = defaultRange ? createWindowLevelSliderBounds(defaultRange) : null;
+      applyImageRangeToActiveVolume();
     }
 
-    function readPetRangeInputs() {
+    function readImageRangeInputs() {
       return makeRange(
-        parseFiniteNumber(petRangeMin.value),
-        parseFiniteNumber(petRangeMax.value)
+        parseFiniteNumber(imageRangeMin.value),
+        parseFiniteNumber(imageRangeMax.value)
       );
     }
 
-    function applyManualPetRangeFromInputs() {
-      const range = readPetRangeInputs();
+    function applyManualImageRangeFromInputs() {
+      const range = readImageRangeInputs();
       if (!range) return false;
-      petRangeState.overrideRange = cloneRange(range);
-      const applied = applyPetRangeToActiveVolume();
+      imageRangeState.overrideRangeByView[currentView] = cloneRange(range);
+      const applied = applyImageRangeToActiveVolume();
       if (applied) refresh();
       return applied;
     }
 
-    function readPetWindowLevelInputs() {
+    function readImageWindowLevelInputs() {
       return makeWindowLevel(
-        parseFiniteNumber(petWindowInput.value),
-        parseFiniteNumber(petLevelInput.value)
+        parseFiniteNumber(imageWindowInput.value),
+        parseFiniteNumber(imageLevelInput.value)
       );
     }
 
-    function applyManualPetWindowLevel(windowValue, levelValue) {
+    function applyManualImageWindowLevel(windowValue, levelValue) {
       const range = windowLevelToRange(windowValue, levelValue);
       if (!range) return false;
-      petRangeState.overrideRange = cloneRange(range);
-      const applied = applyPetRangeToActiveVolume();
+      imageRangeState.overrideRangeByView[currentView] = cloneRange(range);
+      const applied = applyImageRangeToActiveVolume();
       if (applied) refresh();
       return applied;
     }
 
-    function applyManualPetWindowLevelFromInputs() {
-      const windowLevel = readPetWindowLevelInputs();
+    function applyManualImageWindowLevelFromInputs() {
+      const windowLevel = readImageWindowLevelInputs();
       if (!windowLevel) return false;
-      return applyManualPetWindowLevel(windowLevel.window, windowLevel.level);
+      return applyManualImageWindowLevel(windowLevel.window, windowLevel.level);
     }
 
-    function syncPetRangeControlsToApplied() {
-      syncPetRangeControls(displayedPetRangeForView(currentView));
+    function syncImageRangeControlsToApplied() {
+      syncImageRangeControls(displayedImageRangeForView(currentView));
     }
 
     function removeAllVolumesCompat() {
@@ -1053,125 +878,42 @@
       scheduleToolOverlayRedraw();
     }
 
-    // ---------------- Data/caches ----------------
-    const atlasCache = new Map(); // template + VOIs
-    const mniPetCache = new Map();   // id->NVImage (MNI view PET overlay)
-    const petSpaceCache = new Map(); // id->NVImage (PET view standalone)
-    let atlasLoaded = false;
-
+    // ---------------- Data ----------------
     let subjects = []; // from /api/subjects
     let idx = 0;
     let currentId = null;
-    let currentView = VIEW.PET; // default at startup
+    let currentView = VIEW.T1;
     let defaultSearchId = "";
-    let defaultSearchIdDigits = null;
+    let loadRequestId = 0;
 
     function configureIdSearchUi() {
       defaultSearchId = subjects[0]?.id || "";
-      defaultSearchIdDigits = defaultSearchId.length || null;
-      gotoDigits.textContent = defaultSearchIdDigits ? String(defaultSearchIdDigits) : "?";
-      gotoInput.placeholder = defaultSearchId ? `e.g., ${defaultSearchId}` : "Enter subject ID";
-      gotoInput.maxLength = defaultSearchId ? defaultSearchId.length : 32;
+      gotoInput.placeholder = defaultSearchId ? `e.g., ${defaultSearchId}` : "Enter participant ID";
       gotoIndexMax.textContent = subjects.length ? String(subjects.length) : "?";
       gotoIndexInput.placeholder = subjects.length ? `1-${subjects.length}` : "Enter index";
       updateSavedReadSummary();
     }
 
-    async function loadAtlasOnce() {
-      if (atlasLoaded) return;
-      statusEl.textContent = "Loading atlases (one-time)...";
-
-      atlasCache.set("template", await NVImage.loadFromUrl({ url: ATLAS.template }));
-
-      for (const v of VOIS) {
-        const img = await NVImage.loadFromUrl({ url: ATLAS[v.key] });
-        // IMPORTANT: force exact overlay color using custom LUT
-        applyLabelLUTToImage(img, v.uiHex);
-        atlasCache.set(v.key, img);
-      }
-
-      atlasLoaded = true;
-      statusEl.textContent = "Atlases loaded.";
+    function pathForView(subject, view) {
+      return subject?.[VIEW_PATH_FIELD[view]] || null;
     }
 
-    async function getMniPet(si) {
-      const subj = subjects[si];
-      if (!subj) return null;
-      const id = subj.id;
-      if (!subj.full_path) return null;
-      if (mniPetCache.has(id)) {
-        const cached = mniPetCache.get(id);
-        rememberPetImageDefaultRange(cached);
-        return cached;
-      }
-      const img = await NVImage.loadFromUrl({ url: subj.full_path });
-      rememberPetImageDefaultRange(img);
-      mniPetCache.set(id, img);
-      return img;
+    function availableView(subject, preferredView=currentView) {
+      if (pathForView(subject, preferredView)) return preferredView;
+      return VIEW_ORDER.find((view) => pathForView(subject, view)) || null;
     }
 
-    async function getPetSpace(si) {
-      const subj = subjects[si];
-      if (!subj) return null;
-      const id = subj.id;
-      if (!subj.pet_space_path) return null;
-      if (petSpaceCache.has(id)) {
-        const cached = petSpaceCache.get(id);
-        rememberPetImageDefaultRange(cached);
-        return cached;
-      }
-      const img = await NVImage.loadFromUrl({ url: subj.pet_space_path });
-      rememberPetImageDefaultRange(img);
-      petSpaceCache.set(id, img);
-      return img;
-    }
-
-    function rebuildMniVolumes(templateImg, petImg) {
+    function rebuildBaseVolume(image) {
       removeAllVolumesCompat();
-      nv.addVolume(templateImg); // index 0
-      nv.addVolume(petImg);      // index 1
-      for (const v of VOIS) nv.addVolume(atlasCache.get(v.key)); // index 2+
+      nv.addVolume(image); // base structural image is always index 0
     }
 
-    function rebuildPetOnlyVolumes(petImg) {
-      removeAllVolumesCompat();
-      nv.addVolume(petImg); // index 0
-    }
-
-    function applyMniDisplaySettings() {
-      // Ensure volumes exist before setting properties
-      if (volCount() < 2 + VOIS.length) return;
-
-      // Template in grayscale
-      setColormapSafe(0, "gray");
-      setOpacitySafe(0, mniVisible.checked ? parseFloat(mniOpacity.value) : 0.0);
-
-      // PET in grayscale
-      setColormapSafe(1, "gray");
-      setColormapTypeSafe(1, SMOOTH_CONTINUOUS_OVERLAY_COLORMAP_TYPE);
-      setOpacitySafe(1, parseFloat(petOpacity.value));
-      applyPetRangeToActiveVolume();
-      refresh();
-    }
-
-    function applyPetOnlyDisplaySettings() {
+    function applyStructuralDisplaySettings() {
       if (volCount() < 1) return;
       setColormapSafe(0, "gray");
-      setColormapInvertSafe(0, petInvert.checked);
+      setColormapInvertSafe(0, false);
       setOpacitySafe(0, 1.0);
-      applyPetRangeToActiveVolume();
-      refresh();
-    }
-
-    function applyVoiStateToViewer() {
-      if (currentView !== VIEW.MNI) return;
-      if (volCount() < 2 + VOIS.length) return;
-      for (let i=0; i<VOIS.length; i++) {
-        const vi = 2 + i;
-        const v = VOIS[i];
-        const st = voiState[v.key];
-        setOpacitySafe(vi, st.visible ? st.opacity : 0.0);
-      }
+      applyImageRangeToActiveVolume();
       refresh();
     }
 
@@ -1311,161 +1053,58 @@
       redrawViewer();
     }
 
-    // ---------------- UI build ----------------
-    function buildVoiControls() {
-      voiControlsDiv.innerHTML = "";
-      for (const v of VOIS) {
-        const st = voiState[v.key];
-
-        const card = document.createElement("div");
-        card.className = "voiCard";
-
-        const top = document.createElement("div");
-        top.className = "voiTop";
-
-        const left = document.createElement("div");
-        left.innerHTML = `<div class="voiName">${v.label}</div>
-                          <div class="voiMeta">Color: <span class="mono">${v.uiHex}</span></div>`;
-
-        const toggle = document.createElement("input");
-        toggle.type = "checkbox";
-        toggle.checked = st.visible;
-        toggle.style.accentColor = v.uiHex;
-        toggle.addEventListener("change", () => {
-          voiState[v.key].visible = toggle.checked;
-          applyVoiStateToViewer();
-        });
-
-        top.appendChild(left);
-        top.appendChild(toggle);
-
-        const row = document.createElement("div");
-        row.className = "voiRow";
-
-        const lab = document.createElement("label");
-        lab.textContent = "Opacity";
-
-        const slider = document.createElement("input");
-        slider.type = "range";
-        slider.min = "0"; slider.max = "1"; slider.step = "0.05";
-        slider.value = String(st.opacity);
-        slider.style.accentColor = v.uiHex;
-
-        const val = document.createElement("span");
-        val.className = "mono";
-        val.textContent = st.opacity.toFixed(2);
-
-        slider.addEventListener("input", () => {
-          const op = parseFloat(slider.value);
-          voiState[v.key].opacity = op;
-          val.textContent = op.toFixed(2);
-          applyVoiStateToViewer();
-        });
-
-        row.appendChild(lab);
-        row.appendChild(slider);
-        row.appendChild(val);
-
-        card.appendChild(top);
-        card.appendChild(row);
-        voiControlsDiv.appendChild(card);
-      }
-    }
-
-    masterOpacity.addEventListener("input", () => {
-      const val = parseFloat(masterOpacity.value);
-      masterOpacityLabel.textContent = val.toFixed(2);
-      for (const v of VOIS) voiState[v.key].opacity = val;
-      buildVoiControls();
-      applyVoiStateToViewer();
+    // ---------------- UI events ----------------
+    imageRangeMin.addEventListener("input", () => {
+      applyManualImageRangeFromInputs();
     });
 
-    petOpacity.addEventListener("input", () => {
-      const val = parseFloat(petOpacity.value);
-      petOpacityLabel.textContent = val.toFixed(2);
-      if (currentView !== VIEW.MNI) return;
-      // PET is index 1
-      setOpacitySafe(1, val);
-      refresh();
+    imageRangeMax.addEventListener("input", () => {
+      applyManualImageRangeFromInputs();
     });
 
-    mniOpacity.addEventListener("input", () => {
-      const val = parseFloat(mniOpacity.value);
-      mniOpacityLabel.textContent = val.toFixed(2);
-      if (currentView !== VIEW.MNI) return;
-      // MNI template is index 0
-      setOpacitySafe(0, mniVisible.checked ? val : 0.0);
-      refresh();
+    imageRangeMin.addEventListener("blur", () => {
+      if (!readImageRangeInputs()) syncImageRangeControlsToApplied();
     });
 
-    mniVisible.addEventListener("change", () => {
-      if (currentView !== VIEW.MNI) return;
-      const val = parseFloat(mniOpacity.value);
-      setOpacitySafe(0, mniVisible.checked ? val : 0.0);
-      refresh();
+    imageRangeMax.addEventListener("blur", () => {
+      if (!readImageRangeInputs()) syncImageRangeControlsToApplied();
     });
 
-    petInvert.addEventListener("change", () => {
-      if (currentView !== VIEW.PET) return;
-      applyPetOnlyDisplaySettings();
+    imageWindowInput.addEventListener("input", () => {
+      applyManualImageWindowLevelFromInputs();
     });
 
-    petRangeMin.addEventListener("input", () => {
-      applyManualPetRangeFromInputs();
+    imageLevelInput.addEventListener("input", () => {
+      applyManualImageWindowLevelFromInputs();
     });
 
-    petRangeMax.addEventListener("input", () => {
-      applyManualPetRangeFromInputs();
+    imageWindowInput.addEventListener("blur", () => {
+      if (!readImageWindowLevelInputs()) syncImageRangeControlsToApplied();
     });
 
-    petRangeMin.addEventListener("blur", () => {
-      if (!readPetRangeInputs()) syncPetRangeControlsToApplied();
+    imageLevelInput.addEventListener("blur", () => {
+      if (!readImageWindowLevelInputs()) syncImageRangeControlsToApplied();
     });
 
-    petRangeMax.addEventListener("blur", () => {
-      if (!readPetRangeInputs()) syncPetRangeControlsToApplied();
-    });
-
-    petWindowInput.addEventListener("input", () => {
-      applyManualPetWindowLevelFromInputs();
-    });
-
-    petLevelInput.addEventListener("input", () => {
-      applyManualPetWindowLevelFromInputs();
-    });
-
-    petWindowInput.addEventListener("blur", () => {
-      if (!readPetWindowLevelInputs()) syncPetRangeControlsToApplied();
-    });
-
-    petLevelInput.addEventListener("blur", () => {
-      if (!readPetWindowLevelInputs()) syncPetRangeControlsToApplied();
-    });
-
-    petWindowSlider.addEventListener("input", () => {
-      const current = rangeToWindowLevel(displayedPetRangeForView(currentView));
-      applyManualPetWindowLevel(
-        parseFiniteNumber(petWindowSlider.value),
+    imageWindowSlider.addEventListener("input", () => {
+      const current = rangeToWindowLevel(displayedImageRangeForView(currentView));
+      applyManualImageWindowLevel(
+        parseFiniteNumber(imageWindowSlider.value),
         current?.level
       );
     });
 
-    petLevelSlider.addEventListener("input", () => {
-      const current = rangeToWindowLevel(displayedPetRangeForView(currentView));
-      applyManualPetWindowLevel(
+    imageLevelSlider.addEventListener("input", () => {
+      const current = rangeToWindowLevel(displayedImageRangeForView(currentView));
+      applyManualImageWindowLevel(
         current?.window,
-        parseFiniteNumber(petLevelSlider.value)
+        parseFiniteNumber(imageLevelSlider.value)
       );
     });
 
-    petRangeReset.addEventListener("click", () => {
-      petRangeState.overrideRange = null;
-      if (applyPetRangeToActiveVolume()) refresh();
-    });
-
-    centiloidReveal.addEventListener("click", () => {
-      centiloidState.revealed = !centiloidState.revealed;
-      renderCentiloidState();
+    imageRangeReset.addEventListener("click", () => {
+      imageRangeState.overrideRangeByView[currentView] = null;
+      if (applyImageRangeToActiveVolume()) refresh();
     });
 
     sliceToolNavigateBtn.addEventListener("click", () => setSliceTool(SLICE_TOOL.NAVIGATE));
@@ -1526,31 +1165,28 @@
       scheduleToolOverlayRedraw();
     });
 
-    function setViewUiState() {
-      const isMni = currentView === VIEW.MNI;
+    function setViewUiState(subject=subjects[idx]) {
       viewModeChip.textContent = currentView;
-      templateChip.style.display = isMni ? "" : "none";
-      petOnlyControls.style.display = isMni ? "none" : "";
-      mniOnlyControls.style.display = isMni ? "" : "none";
-      viewPet.checked = !isMni;
-      viewMni.checked = isMni;
+      for (const view of VIEW_ORDER) {
+        viewInputs[view].disabled = !pathForView(subject, view);
+        viewInputs[view].checked = currentView === view;
+      }
     }
 
     async function setViewMode(nextView) {
-      if (nextView !== VIEW.PET && nextView !== VIEW.MNI) return;
+      if (!VIEW_ORDER.includes(nextView)) return;
+      if (!pathForView(subjects[idx], nextView)) return;
       if (nextView === currentView) return;
       currentView = nextView;
       setViewUiState();
       await loadSubjectByIndex(idx);
     }
 
-    viewPet.addEventListener("change", () => {
-      if (viewPet.checked) setViewMode(VIEW.PET);
-    });
-
-    viewMni.addEventListener("change", () => {
-      if (viewMni.checked) setViewMode(VIEW.MNI);
-    });
+    for (const view of VIEW_ORDER) {
+      viewInputs[view].addEventListener("change", () => {
+        if (viewInputs[view].checked) setViewMode(view);
+      });
+    }
 
     function syncReviewControlsForCurrentSubject() {
       const review = normalizeReviewState(reviewMap[currentId]);
@@ -1606,8 +1242,12 @@
       if (!subjects.length) return;
       idx = Math.max(0, Math.min(newIdx, subjects.length - 1));
       const subj = subjects[idx];
-      const subjectChanged = currentId !== subj.id;
-      if (petRangeState.subjectId !== subj.id) resetPetRangeState(subj.id);
+      const nextView = availableView(subj, currentView);
+      if (!nextView) return;
+      currentView = nextView;
+      const requestId = ++loadRequestId;
+
+      if (imageRangeState.subjectId !== subj.id) resetImageRangeState(subj.id);
       if (sliceZoomState.subjectId !== subj.id) resetSliceZoomState(subj.id);
       currentId = subj.id;
       sidEl.textContent = currentId;
@@ -1616,56 +1256,40 @@
 
       notesEl.value = (notesMap[currentId] ?? "");
       syncReviewControlsForCurrentSubject();
-      setCentiloidSubject(currentId, subjectChanged);
+      setViewUiState(subj);
+
+      const imagePath = pathForView(subj, currentView);
+      sourcePathChip.textContent = decodeURIComponent(imagePath.split("/").pop());
+      topStatusEl.textContent = imagePath;
+      statusEl.textContent = `Loading ${currentView} volume...`;
+
+      removeAllVolumesCompat();
+      imageRangeState.appliedRange = null;
+      refreshImageRangeUi();
+      redrawViewer();
+
       try {
-        if (currentView === VIEW.PET) {
-          petPathChip.textContent = subj.pet_space_path
-            ? subj.pet_space_path.split("/").pop()
-            : `${subj.id}_PET_3D.nii`;
-          topStatusEl.textContent = subj.pet_space_path || `Missing PET-space file for subject ${subj.id}.`;
-          statusEl.textContent = "Loading PET-space volume...";
-
-          const petSpaceImg = await getPetSpace(idx);
-          if (!petSpaceImg) {
-            removeAllVolumesCompat();
-            petRangeState.appliedRange = null;
-            refreshPetRangeUi();
-            redrawViewer();
-            statusEl.textContent = `PET view unavailable: missing PET-space file for subject ${subj.id}.`;
-            return;
-          }
-
-          rebuildPetOnlyVolumes(petSpaceImg);
-          await new Promise(r => requestAnimationFrame(r));
-          updatePetRangeForLoadedImage(VIEW.PET, petSpaceImg);
-          applyPetOnlyDisplaySettings();
-          redrawViewer();
-          statusEl.textContent = "Ready (PET view).";
-          return;
-        }
-
-        petPathChip.textContent = (subj.full_path || "").split("/").pop();
-        topStatusEl.textContent = subj.full_path || "";
-        statusEl.textContent = "Loading MNI view...";
-
-        await loadAtlasOnce();
-        const templateImg = atlasCache.get("template");
-        const petImg = await getMniPet(idx);
-        if (!templateImg || !petImg) { statusEl.textContent = "Missing template or PET."; return; }
-
-        rebuildMniVolumes(templateImg, petImg);
+        const image = await NVImage.loadFromUrl({ url: imagePath });
+        if (requestId !== loadRequestId) return;
+        rememberImageDefaultRange(image);
+        rebuildBaseVolume(image);
 
         // Important: wait one tick so nv.volumes is populated in this Niivue build
         await new Promise(r => requestAnimationFrame(r));
+        if (requestId !== loadRequestId) return;
 
-        updatePetRangeForLoadedImage(VIEW.MNI, petImg);
-        applyMniDisplaySettings();
-        applyVoiStateToViewer();
+        updateImageRangeForLoadedImage(currentView, image);
+        applyStructuralDisplaySettings();
         redrawViewer();
-        statusEl.textContent = "Ready (MNI view).";
+        statusEl.textContent = `Ready (${currentView}).`;
       } catch (e) {
+        if (requestId !== loadRequestId) return;
         console.error(e);
-        statusEl.textContent = "ERROR loading volume (see console).";
+        removeAllVolumesCompat();
+        imageRangeState.appliedRange = null;
+        refreshImageRangeUi();
+        redrawViewer();
+        statusEl.textContent = `ERROR loading ${currentView} volume (see console).`;
       }
     }
 
@@ -1706,8 +1330,7 @@
     goBtn.addEventListener("click", () => {
       const id = (gotoInput.value || "").trim();
       if (!id) {
-        const digitText = defaultSearchIdDigits ? `${defaultSearchIdDigits}-digit ` : "";
-        statusEl.textContent = `Enter a ${digitText}ID${defaultSearchId ? ` like ${defaultSearchId}` : ""}.`;
+        statusEl.textContent = `Enter a participant ID${defaultSearchId ? ` like ${defaultSearchId}` : ""}.`;
         return;
       }
       const j = findIndexById(id);
@@ -1761,17 +1384,23 @@
     // ---------------- Init ----------------
     async function init(){
       try {
-        statusEl.textContent = "Loading subject list...";
+        statusEl.textContent = "Loading participant list...";
         const rs = await fetch("/api/subjects");
+        if (!rs.ok) throw new Error(`Participant request failed (${rs.status}).`);
         const js = await rs.json();
 
-        // server returns {id, full_path, pet_space_path}
+        // Server returns explicit paths for the three first-wave modalities.
         subjects = (js.subjects || []).map(s => ({
-          id: s.id,
-          full_path: s.full_path,
-          pet_space_path: s.pet_space_path || null
-        }));
-        if (!subjects.length) { statusEl.textContent = "No PETs found in the configured PET_MNI folder."; return; }
+          id: String(s.id),
+          t1_path: s.t1_path || null,
+          t2_path: s.t2_path || null,
+          flair_path: s.flair_path || null,
+        })).filter(s => s.t1_path || s.t2_path || s.flair_path);
+        if (!subjects.length) {
+          setViewUiState(null);
+          statusEl.textContent = "No usable participants found in data/. Add at least one expected T1, T2, or FLAIR NIfTI file.";
+          return;
+        }
         configureIdSearchUi();
         scountEl.textContent = String(subjects.length);
 
@@ -1796,25 +1425,14 @@
           rebuildSavedReadIds(serverNotes, serverReview);
         } catch {}
 
-        try {
-          const rc = await fetch("/api/centiloids");
-          const jc = await rc.json();
-          if (jc && jc.centiloids && typeof jc.centiloids === "object") {
-            centiloidsMap = jc.centiloids;
-          }
-        } catch {}
-
-        initVoiState(DEFAULT_VOI_OPACITY);
-        buildVoiControls();
-        renderCentiloidState();
-
+        currentView = availableView(subjects[0], VIEW.T1);
         setViewUiState();
         setCrosshairVisible(crosshairVisible);
         setSliceTool(SLICE_TOOL.NAVIGATE);
         await loadSubjectByIndex(0);
       } catch (e) {
         console.error(e);
-        statusEl.textContent = "Could not connect to server. Start via Start_Viewer.bat.";
+        statusEl.textContent = "Could not connect to the FastReads VASC server. Start it with the launcher for this platform.";
       }
     }
 

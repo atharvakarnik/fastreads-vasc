@@ -28,15 +28,15 @@ if errorlevel 1 (
   exit /b 1
 )
 
-echo Starting PET Viewer server...
-start "PET Viewer Server" cmd /k %PY% server.py
+echo Starting FastReads VASC server...
+start "FastReads VASC Server" cmd /k %PY% server.py
 
 echo Waiting for server...
-powershell -NoProfile -Command "$deadline=(Get-Date).AddSeconds(15); while((Get-Date) -lt $deadline){ try { $r=Invoke-WebRequest -UseBasicParsing 'http://127.0.0.1:8000/viewer.html'; if($r.StatusCode -eq 200 -and $r.Content -match 'petWindowSlider' -and $r.Content -match 'centiloidReveal'){ exit 0 } } catch {}; Start-Sleep -Milliseconds 250 }; exit 1"
+powershell -NoProfile -Command "$deadline=(Get-Date).AddSeconds(15); while((Get-Date) -lt $deadline){ try { $r=Invoke-WebRequest -UseBasicParsing 'http://127.0.0.1:8000/viewer.html'; if($r.StatusCode -eq 200 -and $r.Content -match 'imageWindowSlider' -and $r.Content -match 'viewFlair' -and $r.Content -match 'crosshairToggle'){ exit 0 } } catch {}; Start-Sleep -Milliseconds 250 }; exit 1"
 if errorlevel 1 (
   echo The server at %URL% did not respond with the current viewer UI.
-  echo This usually means another older PET Viewer server is already running on port 8000.
-  echo Close any old "PET Viewer Server" windows and try again.
+  echo This usually means another older server is already running on port 8000.
+  echo Close the process using port 8000, including any older FastReads viewer server, and try again.
   pause
   exit /b 1
 )
@@ -47,8 +47,8 @@ echo Opening viewer...
 start "" "%RUN_URL%"
 
 echo.
-echo PET Viewer started at:
+echo FastReads VASC started at:
 echo   %RUN_URL%
 echo.
-echo Do not close the "PET Viewer Server" window while using the viewer.
+echo Do not close the "FastReads VASC Server" window while using the viewer.
 endlocal

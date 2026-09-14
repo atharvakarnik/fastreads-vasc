@@ -4,15 +4,12 @@ import re
 import json
 import csv
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
-from urllib.parse import urlparse
+from urllib.parse import quote, urlparse
 
 PORT = 8000
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-PET_MNI_DIR = "PET_MNI"
-PET_SPACE_DIR = "PET_Space"
-EXAMPLE_DIR = "Example"
+DATA_DIR = os.path.join(BASE_DIR, "data")
 NOTES_CSV = "notes.csv"
-CENTILOIDS_CSV = "Cohort_Centiloids.csv"
 NOTES_FIELDS = [
     "ID",
     "IN_Notes",
@@ -22,80 +19,48 @@ NOTES_FIELDS = [
 ]
 VALID_CASE_STATUSES = {"", "Positive", "Negative", "Borderline"}
 
-PET_MNI_ID_RE = re.compile(r"^w(\d+)_PET_3D\.nii(?:\.gz)?$", re.IGNORECASE)
-PET_SPACE_ID_RE = re.compile(r"^(\d+)_PET_3D\.nii(?:\.gz)?$", re.IGNORECASE)
-VALID_EXT = (".nii", ".nii.gz")
+MODALITY_FIELDS = {
+    "T1": "t1_path",
+    "T2": "t2_path",
+    "FLAIR": "flair_path",
+}
 
 
-def _is_better_file(candidate, current):
-    if current is None:
-        return True
-    candidate_key = (0 if candidate.lower().endswith(".nii") else 1, candidate)
-    current_key = (0 if current.lower().endswith(".nii") else 1, current)
-    return candidate_key < current_key
-
-
-def _resolve_subject_data_dirs():
-    pet_mni_abs = os.path.join(BASE_DIR, PET_MNI_DIR)
-    pet_space_abs = os.path.join(BASE_DIR, PET_SPACE_DIR)
-    if os.path.isdir(pet_mni_abs) or os.path.isdir(pet_space_abs):
-        return PET_MNI_DIR, pet_mni_abs, PET_SPACE_DIR, pet_space_abs
-
-    example_pet_mni_rel = os.path.join(EXAMPLE_DIR, PET_MNI_DIR)
-    example_pet_space_rel = os.path.join(EXAMPLE_DIR, PET_SPACE_DIR)
-    return (
-        example_pet_mni_rel,
-        os.path.join(BASE_DIR, example_pet_mni_rel),
-        example_pet_space_rel,
-        os.path.join(BASE_DIR, example_pet_space_rel),
-    )
-
-
-def _index_pet_files(folder, pattern):
-    indexed = {}
-    if not os.path.isdir(folder):
-        return indexed
-
-    for entry in os.scandir(folder):
-        if not entry.is_file():
-            continue
-        lower = entry.name.lower()
-        if not lower.endswith(VALID_EXT):
-            continue
-        match = pattern.match(entry.name)
-        if not match:
-            continue
-        sid = match.group(1)
-        current = indexed.get(sid)
-        if _is_better_file(entry.name, current):
-            indexed[sid] = entry.name
-    return indexed
+def _natural_sort_key(value):
+    parts = re.split(r"(\d+)", value.casefold())
+    return tuple((0, int(part)) if part.isdigit() else (1, part) for part in parts), value
 
 
 def list_subjects():
-    pet_mni_rel, pet_mni_abs, pet_space_rel, pet_space_abs = _resolve_subject_data_dirs()
+    if not os.path.isdir(DATA_DIR):
+        return []
 
-    full_files = _index_pet_files(pet_mni_abs, PET_MNI_ID_RE)
-    pet_space_files = _index_pet_files(pet_space_abs, PET_SPACE_ID_RE)
     subjects = []
-    for sid in set(full_files) | set(pet_space_files):
-        full_fn = full_files.get(sid)
-        pet_space_fn = pet_space_files.get(sid)
-        subjects.append({
-            "id": sid,
-            "full_path": f"{pet_mni_rel}/{full_fn}" if full_fn else None,
-            "pet_space_path": f"{pet_space_rel}/{pet_space_fn}" if pet_space_fn else None,
-        })
+    for entry in os.scandir(DATA_DIR):
+        if not entry.is_dir(follow_symlinks=False):
+            continue
 
-    subjects.sort(key=lambda x: (int(x["id"]), x["id"]))
+        sid = entry.name
+        subject = {"id": sid}
+        has_modality = False
+        for modality, field in MODALITY_FIELDS.items():
+            filename = f"{sid}_{modality}.nii.gz"
+            file_path = os.path.join(entry.path, filename)
+            if os.path.isfile(file_path) and not os.path.islink(file_path):
+                subject[field] = f"data/{quote(sid, safe='')}/{quote(filename, safe='')}"
+                has_modality = True
+            else:
+                subject[field] = None
+
+        if has_modality:
+            subjects.append(subject)
+
+    subjects.sort(key=lambda subject: _natural_sort_key(subject["id"]))
     return subjects
 
 
 def _subject_sort_key(sid):
-    try:
-        return (0, int(sid), sid)
-    except ValueError:
-        return (1, sid)
+    return _natural_sort_key(sid)
 
 
 def _parse_bool(value):
@@ -140,25 +105,6 @@ def read_notes_csv():
     except Exception:
         return {}, {}
     return notes, review
-
-
-def read_centiloids_csv():
-    centiloids = {}
-    if not os.path.isfile(CENTILOIDS_CSV):
-        return centiloids
-    try:
-        with open(CENTILOIDS_CSV, "r", encoding="utf-8", newline="") as f:
-            reader = csv.DictReader(f)
-            if not reader.fieldnames or "Subject" not in reader.fieldnames or "CL" not in reader.fieldnames:
-                return {}
-            for row in reader:
-                sid = (row.get("Subject") or "").strip()
-                cl = (row.get("CL") or "").strip()
-                if sid and cl:
-                    centiloids[sid] = cl
-    except Exception:
-        return {}
-    return centiloids
 
 
 def write_notes_csv(notes_map, review_map=None, subject_ids=None):
@@ -213,10 +159,6 @@ class Handler(SimpleHTTPRequestHandler):
             notes, review = read_notes_csv()
             return self._send_json({"notes": notes, "review": review})
 
-        if parsed.path == "/api/centiloids":
-            centiloids = read_centiloids_csv()
-            return self._send_json({"centiloids": centiloids})
-
         return super().do_GET()
 
     def do_POST(self):
@@ -267,5 +209,5 @@ class Handler(SimpleHTTPRequestHandler):
 if __name__ == "__main__":
     os.chdir(BASE_DIR)
     httpd = ThreadingHTTPServer(("127.0.0.1", PORT), Handler)
-    print(f"Serving on http://127.0.0.1:{PORT}/viewer.html")
+    print(f"FastReads VASC serving on http://127.0.0.1:{PORT}/viewer.html")
     httpd.serve_forever()

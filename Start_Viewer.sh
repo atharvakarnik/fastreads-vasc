@@ -32,8 +32,8 @@ try:
         content = response.read().decode("utf-8", errors="replace")
         ok = (
             response.status == 200
-            and "petWindowSlider" in content
-            and "centiloidReveal" in content
+            and "imageWindowSlider" in content
+            and "viewFlair" in content
             and "crosshairToggle" in content
         )
         raise SystemExit(0 if ok else 1)
@@ -94,22 +94,22 @@ open_viewer() {
 cleanup() {
   if [ -n "$SERVER_PID" ]; then
     echo ""
-    echo "Stopping PET Viewer server..."
+    echo "Stopping FastReads VASC server..."
     kill "$SERVER_PID" 2>/dev/null || true
   fi
 }
 trap cleanup EXIT INT TERM
 
 if viewer_is_ready; then
-  echo "PET Viewer server is already running at:"
+  echo "FastReads VASC server is already running at:"
   echo "  $URL"
   echo "Reusing the existing server."
 elif ! port_is_available; then
-  echo "Port 8000 is already in use, but it is not serving the current PET Viewer UI."
-  echo "Close any old PET Viewer server windows/processes and try again."
+  echo "Port 8000 is already in use, but it is not serving the current FastReads VASC UI."
+  echo "Close the process using port 8000, including any older FastReads viewer server, and try again."
   exit 1
 else
-  echo "Starting PET Viewer server..."
+  echo "Starting FastReads VASC server..."
   "$PY" server.py &
   SERVER_PID=$!
 
@@ -128,7 +128,7 @@ echo "Opening viewer..."
 open_viewer
 
 echo ""
-echo "PET Viewer started at:"
+echo "FastReads VASC started at:"
 echo "  $RUN_URL"
 echo ""
 if [ -n "$SERVER_PID" ]; then
