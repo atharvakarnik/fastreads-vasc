@@ -12,6 +12,16 @@
     :root { --panelW: 420px; }
     body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; height:100vh; display:flex; background:#0b1220; color:#e6edf7; }
     #left { width: var(--panelW); padding:14px; box-sizing:border-box; border-right:1px solid rgba(255,255,255,0.08); background:#0f1a33; overflow:auto; }
+    .brandRibbonLogo { display:inline-flex; margin:0 0 16px; padding:8px 11px; border:1px solid rgba(255,255,255,0.1); border-radius:11px; background:rgba(255,255,255,0.035); transition:background-color 140ms ease, border-color 140ms ease, transform 140ms ease; }
+    .brandRibbonLogo:hover { background:rgba(255,255,255,0.075); border-color:rgba(113,213,167,0.42); transform:translateY(-1px); }
+    .brandWordmark { display:flex; align-items:center; min-width:0; gap:8px; white-space:nowrap; }
+    .brandName { min-width:0; font-size:16px; font-weight:650; letter-spacing:-0.02em; }
+    .brandNameAccent { color:#71d5a7; }
+    .brandSignalMark { position:relative; display:inline-flex; flex:0 0 auto; align-items:center; justify-content:center; width:24px; height:24px; border:1px solid rgba(113,213,167,0.72); border-radius:8px; color:#b6f3d5; font-size:15px; font-weight:750; line-height:1; }
+    .brandSignalMark::after { content:""; position:absolute; right:-5px; bottom:3px; width:8px; height:2px; border-radius:2px; background:#55c996; transform:rotate(-38deg); }
+    .brandViewerLogo { position:absolute; top:12px; right:12px; z-index:2; display:inline-flex; padding:7px 10px; border:1px solid rgba(255,255,255,0.14); border-radius:10px; background:rgba(8,15,28,0.58); box-shadow:0 3px 14px rgba(0,0,0,0.22); opacity:0.82; pointer-events:none; user-select:none; }
+    .brandViewerLogo .brandName { font-size:14px; }
+    .brandViewerLogo .brandSignalMark { width:22px; height:22px; font-size:13px; border-radius:7px; }
     #viewerWrap { flex:1; display:flex; flex-direction:column; min-width: 0; }
     #topBar { padding:10px 12px; border-bottom:1px solid rgba(255,255,255,0.08); display:flex; align-items:center; gap:10px; background:#0f1a33; }
     #gl { flex:1; min-height: 0; position:relative; overflow:hidden; }
@@ -84,6 +94,12 @@
 
 <body>
   <div id="left">
+    <div class="brandRibbonLogo" aria-label="VascReads">
+      <div class="brandWordmark">
+        <span class="brandSignalMark" aria-hidden="true">V</span>
+        <span class="brandName">Vasc<span class="brandNameAccent">Reads</span></span>
+      </div>
+    </div>
     <div class="label">Participant</div>
     <div style="display:flex; align-items:center; gap:10px; margin-top:6px;">
       <div class="chip">ID: <span id="sid" class="mono">------</span></div>
@@ -281,7 +297,14 @@
       </div>
       <div style="margin-left:auto" class="status" id="topStatus"></div>
     </div>
-    <div id="gl"></div>
+    <div id="gl">
+      <div class="brandViewerLogo" aria-hidden="true">
+        <div class="brandWordmark">
+          <span class="brandSignalMark">V</span>
+          <span class="brandName">Vasc<span class="brandNameAccent">Reads</span></span>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script src="./niivue.umd.js"></script>
