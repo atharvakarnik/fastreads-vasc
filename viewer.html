@@ -24,6 +24,15 @@
     button { cursor:pointer; }
     button:hover { filter:brightness(1.08); }
     button:disabled { opacity:0.5; cursor:not-allowed; }
+    #goBtn { transition:background-color 160ms ease, border-color 160ms ease, color 160ms ease, box-shadow 160ms ease; }
+    #goBtn.isIdReady { background:#1f7655; border-color:#55c996; color:#f2fff9; }
+    #goBtn.isGoConfirmed { animation:idGoConfirmed 420ms ease-out; }
+    .idSearchWarning { color:#ff7b7b; font-size:12px; line-height:1.35; margin:-4px 0 8px; }
+    .idSearchWarning[hidden] { display:none; }
+    @keyframes idGoConfirmed {
+      from { box-shadow:0 0 0 0 rgba(85,201,150,0.7); }
+      to { box-shadow:0 0 0 7px rgba(85,201,150,0); }
+    }
     input[type="text"] { flex:1; min-width: 110px; }
     input[type="range"] { width:100%; padding:0; }
 
@@ -93,9 +102,11 @@
 
     <div class="label" style="margin-top:6px;">Go to participant ID</div>
     <div class="row">
-      <input id="gotoInput" class="mono" placeholder="Loading IDs..." type="text" />
+      <input id="gotoInput" class="mono" placeholder="Loading IDs..." type="text" list="participantIdSuggestions" autocomplete="off" aria-describedby="participantIdWarning" />
+      <datalist id="participantIdSuggestions"></datalist>
       <button id="goBtn">Go</button>
     </div>
+    <div id="participantIdWarning" class="idSearchWarning" role="alert" hidden></div>
 
     <div class="label" style="margin-top:6px;">Go to index (1-<span id="gotoIndexMax">?</span>)</div>
     <div class="row">
@@ -327,6 +338,8 @@
     const infarctCountWarningEl = document.getElementById("infarctCountWarning");
     const infarctPresenceEls = [corticalInfarctsEl, deepInfarctsEl, cerebellarInfarctsEl];
     const gotoInput = document.getElementById("gotoInput");
+    const participantIdSuggestionsEl = document.getElementById("participantIdSuggestions");
+    const participantIdWarningEl = document.getElementById("participantIdWarning");
     const gotoIndexInput = document.getElementById("gotoIndexInput");
     const gotoIndexMax = document.getElementById("gotoIndexMax");
 
@@ -975,13 +988,53 @@
     let currentView = VIEW.T1;
     let defaultSearchId = "";
     let loadRequestId = 0;
+    let lexicographicParticipantIds = [];
 
     function configureIdSearchUi() {
       defaultSearchId = subjects[0]?.id || "";
-      gotoInput.placeholder = defaultSearchId ? `e.g., ${defaultSearchId}` : "Enter participant ID";
+      lexicographicParticipantIds = subjects.map((subject) => subject.id).sort();
+      gotoInput.placeholder = defaultSearchId ? "e.g., " + defaultSearchId : "Enter participant ID";
+      updateParticipantIdSuggestions();
       gotoIndexMax.textContent = subjects.length ? String(subjects.length) : "?";
       gotoIndexInput.placeholder = subjects.length ? `1-${subjects.length}` : "Enter index";
       updateSavedReadSummary();
+    }
+
+    function updateParticipantIdSuggestions() {
+      const query = (gotoInput.value || "").trim();
+      const digitCount = (query.match(/\d/g) || []).length;
+      const exactMatch = findIndexById(query) >= 0;
+      participantIdSuggestionsEl.replaceChildren();
+      participantIdWarningEl.hidden = true;
+      participantIdWarningEl.textContent = "";
+      gotoInput.removeAttribute("aria-invalid");
+      goBtn.classList.toggle("isIdReady", exactMatch);
+
+      if (exactMatch) {
+        gotoInput.removeAttribute("list");
+        return;
+      }
+
+      gotoInput.setAttribute("list", "participantIdSuggestions");
+      if (digitCount < 2) return;
+
+      const normalizedQuery = query.toLocaleLowerCase();
+      const matches = lexicographicParticipantIds
+        .filter((id) => id.toLocaleLowerCase().startsWith(normalizedQuery));
+
+      if (digitCount >= 6 && matches.length === 0) {
+        participantIdWarningEl.textContent = `No participant ID matches "${query}".`;
+        participantIdWarningEl.hidden = false;
+        gotoInput.setAttribute("aria-invalid", "true");
+      }
+
+      const options = document.createDocumentFragment();
+      for (const id of matches.slice(0, 3)) {
+        const option = document.createElement("option");
+        option.value = id;
+        options.append(option);
+      }
+      participantIdSuggestionsEl.append(options);
     }
 
     function pathForView(subject, view) {
@@ -1331,7 +1384,10 @@
     }
 
     // ---------------- Navigation ----------------
-    function findIndexById(id){ return subjects.findIndex(s => s.id === id); }
+    function findIndexById(id) {
+      const normalizedId = String(id || "").trim().toLocaleLowerCase();
+      return subjects.findIndex((subject) => subject.id.toLocaleLowerCase() === normalizedId);
+    }
 
     function readIndexInputValue() {
       const text = (gotoIndexInput.value || "").trim();
@@ -1470,6 +1526,14 @@
         statusEl.textContent = `ID ${id} not found.${hint}`;
         return;
       }
+      participantIdSuggestionsEl.replaceChildren();
+      participantIdWarningEl.hidden = true;
+      participantIdWarningEl.textContent = "";
+      gotoInput.removeAttribute("list");
+      gotoInput.removeAttribute("aria-invalid");
+      goBtn.classList.remove("isIdReady", "isGoConfirmed");
+      void goBtn.offsetWidth;
+      goBtn.classList.add("isGoConfirmed");
       loadSubjectByIndex(j);
     });
 
@@ -1486,8 +1550,16 @@
       loadSubjectByIndex(requestedIndex - 1);
     });
 
+    gotoInput.addEventListener("input", updateParticipantIdSuggestions);
+
+    goBtn.addEventListener("animationend", (event) => {
+      if (event.animationName === "idGoConfirmed") {
+        goBtn.classList.remove("isGoConfirmed");
+      }
+    });
+
     gotoInput.addEventListener("keydown", (ev) => {
-      if (ev.key === "Enter") goBtn.click();
+      if (ev.key === "Enter") window.setTimeout(() => goBtn.click(), 0);
     });
 
     gotoIndexInput.addEventListener("keydown", (ev) => {
